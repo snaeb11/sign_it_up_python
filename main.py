@@ -25,12 +25,16 @@ class SignItUp(MDApp):
         self.bottom_nav_screen = BottomNavScreen(name='bottom_nav')
         self.vowels_menu_screen = VowelMenuScreen(name='vowels_menu')
         self.intro_screen = IntroScreen(name='intro')
+
+        #vowels screen
         self.letter_a_screen = LetterAScreen(name='a_screen')
 
         self.sm.add_widget(self.login_scren)
         self.sm.add_widget(self.bottom_nav_screen)
         self.sm.add_widget(self.vowels_menu_screen)
         self.sm.add_widget(self.intro_screen)
+
+        #
         self.sm.add_widget(self.letter_a_screen)
 
         return self.sm
