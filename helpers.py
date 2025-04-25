@@ -1,5 +1,6 @@
 username_helper = '''
 MDTextField:
+    id: usernameField
     hint_text: 'Enter username'
     mode: 'rectangle'
     pos_hint: {'center_x': 0.5, 'center_y': 0.5}
@@ -10,6 +11,7 @@ MDTextField:
 
 password_helper = '''
 MDTextField:
+    id: passField
     hint_text: 'Enter password'
     mode: 'rectangle'
     pos_hint: {'center_x': 0.5, 'center_y': 0.5}

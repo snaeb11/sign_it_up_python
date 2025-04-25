@@ -15,7 +15,6 @@ from kivymd.app import MDApp
 # Load model once
 model_dict = pickle.load(open('./model.p', 'rb'))
 model = model_dict['model']
-labels_dict = {0: 'A', 1: 'E', 2: 'I', 3: 'O', 4: 'U'}
 
 # Setup MediaPipe once
 mp_hands = mp.solutions.hands
@@ -76,7 +75,7 @@ class LetterAScreen(MDScreen):
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = hands.process(frame_rgb)
 
-        predicted_character = "No hand detected"
+        prediction_text = "No hand detected"
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
@@ -101,14 +100,14 @@ class LetterAScreen(MDScreen):
                     confidence = np.max(proba)
                     idx = np.argmax(proba)
 
-                    if confidence >= 0.7:
-                        predicted_character = labels_dict.get(idx, "Gesture incorrect")
+                    if idx == 0 and confidence >= 0.7:
+                        prediction_text = "You have successfully done the Letter A"
                     else:
-                        predicted_character = "Gesture incorrect"
+                        prediction_text = "Gesture incorrect"
                 except:
-                    predicted_character = "Prediction error"
+                    prediction_text = "Prediction error"
 
-        self.label.text = f"Prediction: {predicted_character}"
+        self.label.text = prediction_text
 
         # Display camera feed
         frame = cv2.flip(frame, 0)
