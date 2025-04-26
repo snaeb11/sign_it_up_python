@@ -1,3 +1,19 @@
+import subprocess
+import sys
+
+# List of required packages
+required_packages = ['kivy', 'kivymd', 'mediapipe', 'opencv-python', 'numpy', 'scikit-learn']
+
+# Try to import each package and install if missing
+for package in required_packages:
+    try:
+        __import__(package.replace("-", "_"))
+    except ImportError:
+        print(f"Installing {package}...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+print("✅ All required packages are installed.")
+
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from helpers import *
