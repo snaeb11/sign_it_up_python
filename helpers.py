@@ -78,3 +78,16 @@ BoxLayout:
         size: 100, 100
         on_press: app.openVowelsMenu
 '''
+
+##dialog
+congrats = '''
+BoxLayout:
+    orientation: 'vertical'
+    spacing: dp(20)
+    padding: dp(40)
+
+    MDRaisedButton:
+        text: "Show Congratulations"
+        pos_hint: {"center_x": 0.5}
+        on_release: app.show_congratulations_dialog()
+'''

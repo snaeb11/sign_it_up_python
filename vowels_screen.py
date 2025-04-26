@@ -2,7 +2,7 @@ import pickle
 import cv2
 import mediapipe as mp
 import numpy as np
-
+from kivymd.uix.dialog import MDDialog
 
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -23,9 +23,17 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
 
+
 class LetterAScreen(MDScreen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.gesture_hold_time = 0
+        self.gesture_target_time = 3  # seconds to hold
+        self.gesture_timer_event = None
+
+        self.dialog_shown = False
+
         self.capture = None
         self.event = None
 
@@ -102,9 +110,13 @@ class LetterAScreen(MDScreen):
                     idx = np.argmax(proba)
 
                     if idx == 0 and confidence >= 0.7:
-                        prediction_text = "You have successfully done the Letter A"
+                        prediction_text = "You have successfully done the Letter A -- hold for 3 seconds"
+                        if not self.gesture_timer_event:
+                            self.gesture_hold_time = 0
+                            self.gesture_timer_event = Clock.schedule_interval(self.update_gesture_timer, 0.1)
                     else:
                         prediction_text = "Gesture incorrect"
+                        self.reset_gesture_timer()
                 except:
                     prediction_text = "Prediction error"
 
@@ -120,6 +132,41 @@ class LetterAScreen(MDScreen):
     def go_back(self, *args):
         app = MDApp.get_running_app()
         app.openVowelsMenu()
+
+    ##timer shii
+    def update_gesture_timer(self, dt):
+        self.gesture_hold_time += dt
+        if self.gesture_hold_time >= self.gesture_target_time:
+            self.reset_gesture_timer()
+            self.show_success_dialog()
+
+    def reset_gesture_timer(self):
+        if self.gesture_timer_event:
+            self.gesture_timer_event.cancel()
+            self.gesture_timer_event = None
+        self.gesture_hold_time = 0
+
+     ##suckseas
+    def show_success_dialog(self):
+        if not self.dialog_shown:
+            prediction_text = "You have successfully done the letter!"
+            if not hasattr(self, 'dialog') or not self.dialog:
+                self.dialog = MDDialog(
+                    title="🎉 Congratulations! 🎉",
+                    text="You did an amazing job!",
+                    radius=[20, 7, 20, 7],
+                    buttons=[
+                        MDRaisedButton(
+                            text="Thank you!",
+                            on_release=lambda x: (self.dialog.dismiss(), self.go_back())
+                        )
+                    ],
+                )
+            self.dialog.open()
+            self.dialog_shown = True
+
+    def reset_dialog_flag(self):
+        self.dialog_shown = False  # Reset the flag when the user goes back
 
 class LetterEScreen(MDScreen):
     def __init__(self, *args, **kwargs):

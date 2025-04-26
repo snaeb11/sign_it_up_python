@@ -8,15 +8,19 @@ from vowels_menu_screen import VowelMenuScreen
 from login_screen import LoginScreen
 from navigation_screen import BottomNavScreen
 
-##button loads
-Builder.load_string(introButton)
-Builder.load_string(vowelsButton)
-Builder.load_string(aButton)
-#####
+
 
 #main--------------------------------------------------------------------
 class SignItUp(MDApp):
     def build(self):
+
+        ##button loads
+        Builder.load_string(introButton)
+        Builder.load_string(vowelsButton)
+        Builder.load_string(aButton)
+        Builder.load_string(congrats)
+        #####
+
         self.theme_cls.primary_palette="Gray"
         self.theme_cls.theme_style="Dark"
 
