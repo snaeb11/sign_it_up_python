@@ -2,7 +2,7 @@ import subprocess
 import sys
 
 # List of required packages
-required_packages = ['kivy', 'kivymd', 'mediapipe', 'opencv-python', 'numpy', 'scikit-learn']
+required_packages = ['kivy', 'kivymd', 'mediapipe', 'opencv-python', 'numpy', 'scikit-learn', 'cycler', 'matplotlib']
 
 # Try to import each package and install if missing
 for package in required_packages:
