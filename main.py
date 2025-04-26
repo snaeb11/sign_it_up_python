@@ -28,6 +28,10 @@ class SignItUp(MDApp):
 
         #vowels screen
         self.letter_a_screen = LetterAScreen(name='a_screen')
+        self.letter_e_screen = LetterEScreen(name='e_screen')
+        self.letter_i_screen = LetterIScreen(name='i_screen')
+        self.letter_o_screen = LetterOScreen(name='o_screen')
+        self.letter_u_screen = LetterUScreen(name='u_screen')
 
         self.sm.add_widget(self.login_scren)
         self.sm.add_widget(self.bottom_nav_screen)
@@ -36,6 +40,10 @@ class SignItUp(MDApp):
 
         #
         self.sm.add_widget(self.letter_a_screen)
+        self.sm.add_widget(self.letter_e_screen)
+        self.sm.add_widget(self.letter_i_screen)
+        self.sm.add_widget(self.letter_o_screen)
+        self.sm.add_widget(self.letter_u_screen)
 
         return self.sm
     
@@ -50,6 +58,22 @@ class SignItUp(MDApp):
     def openLetterA (self):
      print('letter a')
      self.sm.current = 'a_screen'
+
+    def openLetterE (self):
+     print('letter e')
+     self.sm.current = 'e_screen'
+
+    def openLetterI (self):
+     print('letter i')
+     self.sm.current = 'i_screen'
+
+    def openLetterO (self):
+     print('letter o')
+     self.sm.current = 'o_screen'
+
+    def openLetterU (self):
+     print('letter u')
+     self.sm.current = 'u_screen'
 
 
 

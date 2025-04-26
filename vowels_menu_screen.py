@@ -29,7 +29,7 @@ class VowelMenuScreen(MDScreen):
 
     def open_letter_u(self, *args):
         app = MDApp.get_running_app()
-        app.openLetteru()
+        app.openLetterU()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
