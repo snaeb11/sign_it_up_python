@@ -6,6 +6,7 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
 from kivy.metrics import dp
 from helpers import *
+from status import status_tracker
 
 class ImageButton(ButtonBehavior, Image):
     pass
@@ -38,31 +39,61 @@ class VowelMenuScreen(MDScreen):
         scroll_view = MDScrollView(size_hint=(1, 1))
 
         # Grid layout: 2 buttons per row, vertical scrolling
-        layout = GridLayout(
+        self.layout = GridLayout(
             cols=2,
             spacing=dp(10),
             padding=[dp(10), dp(10)],
             size_hint_y=None
         )
-        layout.bind(minimum_height=layout.setter('height'))
+        self.layout.bind(minimum_height=self.layout.setter('height'))
 
         # Add all vowel buttons
-        vowels = {
-            'aA': self.open_letter_a,
-            'eE': self.open_letter_e,
-            'iI': self.open_letter_i,
-            'oO': self.open_letter_o,
-            'uU': self.open_letter_u,
-        }
+        self.add_vowel_buttons()
 
-        for key, callback in vowels.items():
-            btn = ImageButton(
-                source=f'assets/{key}.png',
-                size_hint=(None, None),
-                size=(dp(150), dp(150))
-            )
-            btn.bind(on_press=callback)
-            layout.add_widget(btn)
-
-        scroll_view.add_widget(layout)
+        scroll_view.add_widget(self.layout)
         self.add_widget(scroll_view)
+
+    def add_vowel_buttons(self):
+        # Clear existing widgets first
+        self.layout.clear_widgets()
+
+        # Add 'a' button depending on status_tracker.aStatus
+        if status_tracker.aStatus:
+            aBtn = ImageButton(
+                source=f'assets/checkAa.png',
+                size_hint=(None, None),
+                size=(dp(150), dp(150)),
+                disabled=True
+            )
+        else:
+            aBtn = ImageButton(
+                source=f'assets/aA.png',
+                size_hint=(None, None),
+                size=(dp(150), dp(150)),
+            )
+
+        if status_tracker.eStatus:
+            eBtn = ImageButton(
+                source=f'assets/checkEe.png',
+                size_hint=(None, None),
+                size=(dp(150), dp(150)),
+                disabled=True
+            )
+        else:
+            eBtn = ImageButton(
+                source=f'assets/eE.png',
+                size_hint=(None, None),
+                size=(dp(150), dp(150)),
+            )
+
+
+        aBtn.bind(on_press=self.open_letter_a)
+        eBtn.bind(on_press=self.open_letter_e)
+
+        self.layout.add_widget(aBtn)
+        self.layout.add_widget(eBtn)
+
+    def on_enter(self):
+        # Ensure this method is called when returning to the screen
+        print(status_tracker.aStatus, "<-- vowels_menu_screen")
+        self.add_vowel_buttons()  # Update the button based on the status

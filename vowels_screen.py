@@ -12,7 +12,7 @@ from kivy.uix.label import Label
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from kivymd.app import MDApp
-
+from status import status_tracker
 # Load model once
 model_dict = pickle.load(open('./model.p', 'rb'))
 model = model_dict['model']
@@ -22,6 +22,8 @@ mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
+
+from kivymd.uix.progressbar import MDProgressBar
 
 
 class LetterAScreen(MDScreen):
@@ -47,8 +49,12 @@ class LetterAScreen(MDScreen):
         self.image = Image()
         self.label = Label(text="Detecting...", font_size=20)
 
+        # Progress bar to show the gesture hold time
+        self.progress_bar = MDProgressBar(value=0, max=100)
+
         self.layout.add_widget(self.image)
         self.layout.add_widget(self.label)
+        self.layout.add_widget(self.progress_bar)  # Add progress bar to layout
         self.layout.add_widget(MDRaisedButton(
             text='Back to Menu',
             md_bg_color='gray',
@@ -136,6 +142,10 @@ class LetterAScreen(MDScreen):
     ##timer shii
     def update_gesture_timer(self, dt):
         self.gesture_hold_time += dt
+        # Update progress bar value based on the gesture hold time
+        progress = (self.gesture_hold_time / self.gesture_target_time) * 100
+        self.progress_bar.value = progress  # Update progress bar
+
         if self.gesture_hold_time >= self.gesture_target_time:
             self.reset_gesture_timer()
             self.show_success_dialog()
@@ -145,8 +155,9 @@ class LetterAScreen(MDScreen):
             self.gesture_timer_event.cancel()
             self.gesture_timer_event = None
         self.gesture_hold_time = 0
+        self.progress_bar.value = 0  # Reset progress bar when timer is reset
 
-     ##suckseas
+    ##suckseas
     def show_success_dialog(self):
         if not self.dialog_shown:
             prediction_text = "You have successfully done the letter!"
@@ -162,11 +173,14 @@ class LetterAScreen(MDScreen):
                         )
                     ],
                 )
+            status_tracker.aStatus = True
+            print(status_tracker.aStatus, "<-- vowels_screen")
             self.dialog.open()
             self.dialog_shown = True
 
     def reset_dialog_flag(self):
         self.dialog_shown = False  # Reset the flag when the user goes back
+
 
 class LetterEScreen(MDScreen):
     def __init__(self, *args, **kwargs):
@@ -191,8 +205,12 @@ class LetterEScreen(MDScreen):
         self.image = Image()
         self.label = Label(text="Detecting...", font_size=20)
 
+        self.progress_bar = MDProgressBar(value=0, max=100) # <----------------
+
+
         self.layout.add_widget(self.image)
         self.layout.add_widget(self.label)
+        self.layout.add_widget(self.progress_bar)  # <-------------------
         self.layout.add_widget(MDRaisedButton(
             text='Back to Menu',
             md_bg_color='gray',
@@ -279,6 +297,9 @@ class LetterEScreen(MDScreen):
 
     def update_gesture_timer(self, dt):
         self.gesture_hold_time += dt
+        progress = (self.gesture_hold_time / self.gesture_target_time) * 100  # <------------
+        self.progress_bar.value = progress  # <-------------
+
         if self.gesture_hold_time >= self.gesture_target_time:
             self.reset_gesture_timer()
             self.show_success_dialog()
@@ -288,6 +309,7 @@ class LetterEScreen(MDScreen):
             self.gesture_timer_event.cancel()
             self.gesture_timer_event = None
         self.gesture_hold_time = 0
+        self.progress_bar.value = 0  # <-----------------
 
     def show_success_dialog(self):
         if not self.dialog_shown:
@@ -304,6 +326,7 @@ class LetterEScreen(MDScreen):
                         )
                     ],
                 )
+                status_tracker.eStatus = True
             self.dialog.open()
             self.dialog_shown = True
 
