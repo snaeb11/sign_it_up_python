@@ -1,6 +1,7 @@
 import subprocess
 import sys
 
+
 # List of required packages
 required_packages = ['kivy', 'kivymd', 'mediapipe', 'opencv-python', 'numpy', 'scikit-learn', 'cycler', 'matplotlib']
 
@@ -21,9 +22,9 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from vowels_screen import *
 from intro_screen import IntroScreen
 from vowels_menu_screen import VowelMenuScreen
-from login_screen import LoginScreen
 from navigation_screen import BottomNavScreen
-
+from register import RegisterScreen
+from welcome_screen import WelcomeScreen
 
 
 #main--------------------------------------------------------------------
@@ -41,10 +42,13 @@ class SignItUp(MDApp):
         self.theme_cls.theme_style="Dark"
 
         self.sm = ScreenManager()
-        self.login_scren = LoginScreen(name='login')
+        self.register_screen = RegisterScreen(name='register')
+        self.welcome_screen = WelcomeScreen(name='welcome')
         self.bottom_nav_screen = BottomNavScreen(name='bottom_nav')
         self.vowels_menu_screen = VowelMenuScreen(name='vowels_menu')
         self.intro_screen = IntroScreen(name='intro')
+
+        ##bullied class
 
         #vowels screen
         self.letter_a_screen = LetterAScreen(name='a_screen')
@@ -53,10 +57,13 @@ class SignItUp(MDApp):
         self.letter_o_screen = LetterOScreen(name='o_screen')
         self.letter_u_screen = LetterUScreen(name='u_screen')
 
-        self.sm.add_widget(self.login_scren)
+        self.sm.add_widget(self.welcome_screen)
+        self.sm.add_widget(self.register_screen)
         self.sm.add_widget(self.bottom_nav_screen)
         self.sm.add_widget(self.vowels_menu_screen)
         self.sm.add_widget(self.intro_screen)
+
+        #bullied class
 
         #
         self.sm.add_widget(self.letter_a_screen)
@@ -65,6 +72,7 @@ class SignItUp(MDApp):
         self.sm.add_widget(self.letter_o_screen)
         self.sm.add_widget(self.letter_u_screen)
 
+        self.sm.current = 'welcome'
         return self.sm
     
     def openVowelsMenu (self):

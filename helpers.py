@@ -9,6 +9,17 @@ MDTextField:
     width: 300
 '''
 
+username_helper_register = '''
+MDTextField:
+    id: usernameField
+    hint_text: 'Enter username'
+    mode: 'rectangle'
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    size_hint_x: None
+    icon_right: "account"
+    width: 300
+'''
+
 password_helper = '''
 MDTextField:
     id: passField
@@ -24,6 +35,12 @@ MDTextField:
 loginButton_helper = '''
 MDRaisedButton:
     text: 'Login'
+    md_bg_color: 'gray'
+'''
+
+registerButton_helper = '''
+MDRaisedButton:
+    text: 'Register'
     md_bg_color: 'gray'
 '''
 
