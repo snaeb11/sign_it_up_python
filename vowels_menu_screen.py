@@ -1,3 +1,4 @@
+from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screen import MDScreen
 from kivymd.app import MDApp
 from kivymd.uix.scrollview import MDScrollView
@@ -35,29 +36,72 @@ class VowelMenuScreen(MDScreen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Scrollable container
-        scroll_view = MDScrollView(size_hint=(1, 1))
+        # Main container to center content vertically
+        main_box = MDBoxLayout(
+            orientation='vertical',
+            size_hint=(1, 1),
+            padding=dp(10),
+            spacing=dp(10)
+        )
 
-        # Grid layout: 2 buttons per row, vertical scrolling
+        # Add an empty box to push content to vertical center
+        top_spacer = MDBoxLayout(size_hint_y=None, height=0)
+        content_box = MDBoxLayout(
+            orientation='horizontal',
+            size_hint=(1, None),
+            height=dp(180),
+            pos_hint={'center_y': 0.5}
+        )
+
+        # Scrollable container with horizontal scrolling
+        scroll_view = MDScrollView(
+            do_scroll_x=True,
+            do_scroll_y=False,
+            size_hint=(1, None),
+            height=dp(180),
+            bar_width = 0
+        )
+
+        # Grid layout: 1 row, horizontally scrollable
         self.layout = GridLayout(
-            cols=2,
+            rows=1,
             spacing=dp(10),
             padding=[dp(10), dp(10)],
-            size_hint_y=None
+            size_hint_x=None,
+            height=dp(150)
         )
-        self.layout.bind(minimum_height=self.layout.setter('height'))
+        self.layout.bind(minimum_width=self.layout.setter('width'))
 
-        # Add all vowel buttons
         self.add_vowel_buttons()
 
         scroll_view.add_widget(self.layout)
-        self.add_widget(scroll_view)
+        content_box.add_widget(scroll_view)
+
+        # Spacer at bottom for centering effect
+        bottom_spacer = MDBoxLayout(size_hint_y=None, height=0)
+
+        main_box.add_widget(top_spacer)
+        main_box.add_widget(content_box)
+        main_box.add_widget(bottom_spacer)
+
+        # Adjust spacers dynamically to center content vertically
+        def update_spacers(*args):
+            screen_height = self.height
+            content_height = content_box.height
+            remaining = max(0, (screen_height - content_height) / 2)
+            top_spacer.height = remaining
+            bottom_spacer.height = remaining
+
+        self.bind(height=update_spacers)
+        update_spacers()
+
+        self.add_widget(main_box)
 
     def add_vowel_buttons(self):
         # Clear existing widgets first
         self.layout.clear_widgets()
 
-        # Add 'a' button depending on status_tracker.aStatus
+        # a button
         if status_tracker.aStatus:
             aBtn = ImageButton(
                 source=f'assets/checkAa.png',
@@ -72,6 +116,7 @@ class VowelMenuScreen(MDScreen):
                 size=(dp(150), dp(150)),
             )
 
+        # e button
         if status_tracker.eStatus:
             eBtn = ImageButton(
                 source=f'assets/checkEe.png',
@@ -86,12 +131,62 @@ class VowelMenuScreen(MDScreen):
                 size=(dp(150), dp(150)),
             )
 
+        # i button
+        if status_tracker.iStatus:
+            iBtn = ImageButton(
+                source=f'assets/checkIi.png',
+                size_hint=(None, None),
+                size=(dp(150), dp(150)),
+                disabled=True
+            )
+        else:
+            iBtn = ImageButton(
+                source=f'assets/Ii.png',
+                size_hint=(None, None),
+                size=(dp(150), dp(150)),
+            )
+
+        # o button
+        if status_tracker.oStatus:
+            oBtn = ImageButton(
+                source=f'assets/checkOo.png',
+                size_hint=(None, None),
+                size=(dp(150), dp(150)),
+                disabled=True
+            )
+        else:
+            oBtn = ImageButton(
+                source=f'assets/Oo.png',
+                size_hint=(None, None),
+                size=(dp(150), dp(150)),
+            )
+
+        # u button
+        if status_tracker.uStatus:
+            uBtn = ImageButton(
+                source=f'assets/checkUu.png',
+                size_hint=(None, None),
+                size=(dp(150), dp(150)),
+                disabled=True
+            )
+        else:
+            uBtn = ImageButton(
+                source=f'assets/Uu.png',
+                size_hint=(None, None),
+                size=(dp(150), dp(150)),
+            )
 
         aBtn.bind(on_press=self.open_letter_a)
         eBtn.bind(on_press=self.open_letter_e)
+        iBtn.bind(on_press=self.open_letter_i)
+        oBtn.bind(on_press=self.open_letter_o)
+        uBtn.bind(on_press=self.open_letter_u)
 
         self.layout.add_widget(aBtn)
         self.layout.add_widget(eBtn)
+        self.layout.add_widget(iBtn)
+        self.layout.add_widget(oBtn)
+        self.layout.add_widget(uBtn)
 
     def on_enter(self):
         # Ensure this method is called when returning to the screen

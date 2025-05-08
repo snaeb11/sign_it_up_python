@@ -125,6 +125,10 @@ class LetterAScreen(MDScreen):
                         self.reset_gesture_timer()
                 except:
                     prediction_text = "Prediction error"
+                    self.reset_gesture_timer()
+
+        if prediction_text == "No hand detected":
+            self.reset_gesture_timer()
 
         self.label.text = prediction_text
 
@@ -326,7 +330,9 @@ class LetterEScreen(MDScreen):
                         )
                     ],
                 )
-                status_tracker.eStatus = True
+
+            status_tracker.eStatus = True
+            print("e korek")
             self.dialog.open()
             self.dialog_shown = True
 
@@ -357,8 +363,11 @@ class LetterIScreen(MDScreen):
         self.image = Image()
         self.label = Label(text="Detecting...", font_size=20)
 
+        self.progress_bar = MDProgressBar(value=0, max=100)
+
         self.layout.add_widget(self.image)
         self.layout.add_widget(self.label)
+        self.layout.add_widget(self.progress_bar)
         self.layout.add_widget(MDRaisedButton(
             text='Back to Menu',
             md_bg_color='gray',
@@ -429,6 +438,10 @@ class LetterIScreen(MDScreen):
                         self.reset_gesture_timer()
                 except:
                     prediction_text = "Prediction error"
+                    self.reset_gesture_timer()
+
+        if prediction_text == "No hand detected":
+            self.reset_gesture_timer()
 
         self.label.text = prediction_text
 
@@ -445,6 +458,10 @@ class LetterIScreen(MDScreen):
 
     def update_gesture_timer(self, dt):
         self.gesture_hold_time += dt
+        # Update progress bar value based on the gesture hold time
+        progress = (self.gesture_hold_time / self.gesture_target_time) * 100
+        self.progress_bar.value = progress  # Update progress bar
+
         if self.gesture_hold_time >= self.gesture_target_time:
             self.reset_gesture_timer()
             self.show_success_dialog()
@@ -454,6 +471,7 @@ class LetterIScreen(MDScreen):
             self.gesture_timer_event.cancel()
             self.gesture_timer_event = None
         self.gesture_hold_time = 0
+        self.progress_bar.value = 0  # Reset progress bar when timer is reset
 
     def show_success_dialog(self):
         if not self.dialog_shown:
@@ -470,6 +488,8 @@ class LetterIScreen(MDScreen):
                         )
                     ],
                 )
+            status_tracker.iStatus = True
+            print("i korek")
             self.dialog.open()
             self.dialog_shown = True
 
@@ -500,8 +520,11 @@ class LetterOScreen(MDScreen):
         self.image = Image()
         self.label = Label(text="Detecting...", font_size=20)
 
+        self.progress_bar = MDProgressBar(value=0, max=100)
+
         self.layout.add_widget(self.image)
         self.layout.add_widget(self.label)
+        self.layout.add_widget(self.progress_bar)
         self.layout.add_widget(MDRaisedButton(
             text='Back to Menu',
             md_bg_color='gray',
@@ -573,6 +596,9 @@ class LetterOScreen(MDScreen):
                 except:
                     prediction_text = "Prediction error"
 
+        if prediction_text == "No hand detected":
+            self.reset_gesture_timer()
+
         self.label.text = prediction_text
 
         # Display camera feed
@@ -588,6 +614,9 @@ class LetterOScreen(MDScreen):
 
     def update_gesture_timer(self, dt):
         self.gesture_hold_time += dt
+        progress = (self.gesture_hold_time / self.gesture_target_time) * 100
+        self.progress_bar.value = progress
+
         if self.gesture_hold_time >= self.gesture_target_time:
             self.reset_gesture_timer()
             self.show_success_dialog()
@@ -597,6 +626,7 @@ class LetterOScreen(MDScreen):
             self.gesture_timer_event.cancel()
             self.gesture_timer_event = None
         self.gesture_hold_time = 0
+        self.progress_bar.value = 0
 
     def show_success_dialog(self):
         if not self.dialog_shown:
@@ -613,6 +643,7 @@ class LetterOScreen(MDScreen):
                         )
                     ],
                 )
+            status_tracker.oStatus = True
             self.dialog.open()
             self.dialog_shown = True
 
@@ -643,8 +674,11 @@ class LetterUScreen(MDScreen):
         self.image = Image()
         self.label = Label(text="Detecting...", font_size=20)
 
+        self.progress_bar = MDProgressBar(value=0, max=100)
+
         self.layout.add_widget(self.image)
         self.layout.add_widget(self.label)
+        self.layout.add_widget(self.progress_bar)
         self.layout.add_widget(MDRaisedButton(
             text='Back to Menu',
             md_bg_color='gray',
@@ -716,6 +750,9 @@ class LetterUScreen(MDScreen):
                 except:
                     prediction_text = "Prediction error"
 
+        if prediction_text == "No hand detected":
+            self.reset_gesture_timer()
+
         self.label.text = prediction_text
 
         # Display camera feed
@@ -731,6 +768,9 @@ class LetterUScreen(MDScreen):
 
     def update_gesture_timer(self, dt):
         self.gesture_hold_time += dt
+        progress = (self.gesture_hold_time / self.gesture_target_time) * 100
+        self.progress_bar.value = progress
+
         if self.gesture_hold_time >= self.gesture_target_time:
             self.reset_gesture_timer()
             self.show_success_dialog()
@@ -740,6 +780,7 @@ class LetterUScreen(MDScreen):
             self.gesture_timer_event.cancel()
             self.gesture_timer_event = None
         self.gesture_hold_time = 0
+        self.progress_bar.value = 0
 
     def show_success_dialog(self):
         if not self.dialog_shown:
@@ -756,6 +797,7 @@ class LetterUScreen(MDScreen):
                         )
                     ],
                 )
+            status_tracker.uStatus = True
             self.dialog.open()
             self.dialog_shown = True
 
