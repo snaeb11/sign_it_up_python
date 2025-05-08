@@ -1,8 +1,10 @@
+import pickle
 import cv2
+import mediapipe as mp
+import numpy as np
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from kivy.uix.image import Image
-
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.scrollview import MDScrollView
@@ -10,12 +12,24 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screen import MDScreen
 from kivy.metrics import dp
 
+# --- Load model and MediaPipe once ---
+model_dict = pickle.load(open('./model.p', 'rb'))
+model = model_dict['model']
+
+mp_hands = mp.solutions.hands
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
+hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
+
+# --- IntroScreen class ---
 class IntroScreen(MDScreen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.capture = None
         self.event = None
+        self.gesture_timer_event = None
+        self.gesture_hold_time = 0
 
         scroll = MDScrollView(size_hint=(1, 1))
 
@@ -129,8 +143,15 @@ class IntroScreen(MDScreen):
         self.image = Image(size_hint_y=None, height=300)
         self.layout.add_widget(self.image)
 
-        ## if ma complete na ni user and 'OK' na sign, mo navigate
-        ## back to menu
+        # Prediction label
+        self.label = MDLabel(
+            text="Waiting for input...",
+            theme_text_color="Secondary",
+            halign="center",
+            size_hint_y=None,
+            height=dp(30),
+        )
+        self.layout.add_widget(self.label)
 
         # Start button
         self.layout.add_widget(MDRaisedButton(
@@ -152,6 +173,7 @@ class IntroScreen(MDScreen):
         if self.event:
             Clock.unschedule(self.event)
             self.event = None
+        self.reset_gesture_timer()
 
     def update(self, dt):
         if not self.capture:
@@ -161,8 +183,70 @@ class IntroScreen(MDScreen):
         if not ret:
             return
 
+        data_aux = []
+        x_, y_ = [], []
+        H, W, _ = frame.shape
+
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = hands.process(frame_rgb)
+
+        prediction_text = "No hand detected"
+
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                mp_drawing.draw_landmarks(
+                    frame,
+                    hand_landmarks,
+                    mp_hands.HAND_CONNECTIONS,
+                    mp_drawing_styles.get_default_hand_landmarks_style(),
+                    mp_drawing_styles.get_default_hand_connections_style()
+                )
+
+                for lm in hand_landmarks.landmark:
+                    x_.append(lm.x)
+                    y_.append(lm.y)
+
+                for lm in hand_landmarks.landmark:
+                    data_aux.append(lm.x - min(x_))
+                    data_aux.append(lm.y - min(y_))
+
+                try:
+                    proba = model.predict_proba([np.asarray(data_aux)])
+                    confidence = np.max(proba)
+                    idx = np.argmax(proba)
+
+                    if idx == 5 and confidence >= 0.7:
+                        prediction_text = "OKKKKKKKKKKKKKKK"
+                        if not self.gesture_timer_event:
+                            self.gesture_hold_time = 0
+                            self.gesture_timer_event = Clock.schedule_interval(self.update_gesture_timer, 0.1)
+                    else:
+                        prediction_text = "Gesture incorrect"
+                        self.reset_gesture_timer()
+                except:
+                    prediction_text = "Prediction error"
+                    self.reset_gesture_timer()
+
+        if prediction_text == "No hand detected":
+            self.reset_gesture_timer()
+
+        self.label.text = prediction_text
+
         frame = cv2.flip(frame, 0)
         buf = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).tobytes()
         texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='rgb')
         texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
         self.image.texture = texture
+
+    def update_gesture_timer(self, dt):
+        self.gesture_hold_time += dt
+        if self.gesture_hold_time >= 3:
+            self.label.text = "Gesture confirmed! 🎉"
+            self.reset_gesture_timer()
+            # You can add screen change or dialog here
+
+    def reset_gesture_timer(self):
+        self.gesture_hold_time = 0
+        if self.gesture_timer_event:
+            Clock.unschedule(self.gesture_timer_event)
+            self.gesture_timer_event = None
