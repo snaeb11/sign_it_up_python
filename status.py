@@ -5,6 +5,7 @@ class StatusTracker:
     iStatus = False
     oStatus = False
     uStatus = False
+    okayStatus = False
     # add more if you have other letters
 
 status_tracker = StatusTracker()
