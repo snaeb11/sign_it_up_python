@@ -1,3 +1,4 @@
+import os
 import pickle
 from kivymd.uix.screen import MDScreen
 from kivymd.app import MDApp
@@ -18,10 +19,14 @@ class BottomNavScreen(MDScreen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.welcome_label = None
+        self.home_tab = None
+        self.home_layout = None
 
     def on_pre_enter(self):
         """Updates account data before the screen is displayed."""
         self.update_account_data()
+        if self.home_layout:
+            self.refresh_home_tab()
 
     def update_account_data(self):
         """Loads account data from file and updates the welcome label."""
@@ -57,19 +62,22 @@ class BottomNavScreen(MDScreen):
             text=f"Welcome, {username}!",
             halign="center",
             theme_text_color="Custom",
-            text_color=(1, 1, 1, 1),  # White color for the text
+            text_color=(1, 1, 1, 1),
             font_style="H5"
         )
 
     def create_gui(self, username):
         """Creates the GUI components after account data is loaded."""
+        if len(self.children) > 0:
+            return  # Prevent adding duplicate layouts
+
         top_layout = MDBoxLayout(orientation="vertical", size_hint=(1, 1.7))
         top_layout.add_widget(self.welcome_label)
 
         bottom_nav = MDBottomNavigation()
 
         # Home Tab
-        home_tab = self.create_home_tab()
+        self.home_tab = self.create_home_tab()
 
         # Hand Tab
         hand_tab = MDBottomNavigationItem(name="handScreen", text="Hand", icon="hand-back-left-outline")
@@ -79,7 +87,7 @@ class BottomNavScreen(MDScreen):
         menu_tab = MDBottomNavigationItem(name="menuScreen", text="Menu", icon="menu")
         menu_tab.add_widget(MDLabel(text='MENU', halign='center'))
 
-        bottom_nav.add_widget(home_tab)
+        bottom_nav.add_widget(self.home_tab)
         bottom_nav.add_widget(hand_tab)
         bottom_nav.add_widget(menu_tab)
 
@@ -87,22 +95,47 @@ class BottomNavScreen(MDScreen):
         self.add_widget(top_layout)
 
     def create_home_tab(self):
-        """Creates the home tab with buttons and layout."""
+        """Creates the home tab and layout container."""
         home_tab = MDBottomNavigationItem(name="homeScreen", text="Home", icon="home")
 
-        vowels_button = self.create_image_button('assets/vowels.png', self.open_vowels_menu)
-        intro_button = self.create_image_button('assets/intro.png', self.open_intro)
-
-        home_layout = MDBoxLayout(
+        self.home_layout = MDBoxLayout(
             orientation='horizontal', spacing=20, padding=[10, 10, 10, 10],
             size_hint=(None, None), size=(300, 150), pos_hint={'center_x': 0.5, 'center_y': 0.5}
         )
 
-        home_layout.add_widget(intro_button)
-        home_layout.add_widget(vowels_button)
-        home_tab.add_widget(home_layout)
+        home_tab.add_widget(self.home_layout)
+        self.refresh_home_tab()
 
         return home_tab
+
+    def refresh_home_tab(self):
+        """Refreshes the button icons and states in the home tab."""
+        self.home_layout.clear_widgets()
+
+        if not os.path.exists("account_data.pkl"):
+            print("No account_data.pkl found. Creating new account.")
+            return
+
+        with open("account_data.pkl", "rb") as file:
+            account: Account = pickle.load(file)
+
+        # Vowels Button
+        if not account.introStatus:
+            vowels_button = self.create_image_button('assets/lockVowels.png', self.open_vowels_menu)
+            vowels_button.disabled = True
+        elif account.aStatus and account.eStatus and account.iStatus and account.oStatus and account.uStatus:
+            vowels_button = self.create_image_button('assets/checkVowels.png', self.open_vowels_menu)
+        else:
+            vowels_button = self.create_image_button('assets/vowels.png', self.open_vowels_menu)
+
+        # Intro Button
+        if account.introStatus:
+            intro_button = self.create_image_button('assets/checkIntro.png', self.open_intro)
+        else:
+            intro_button = self.create_image_button('assets/intro.png', self.open_intro)
+
+        self.home_layout.add_widget(intro_button)
+        self.home_layout.add_widget(vowels_button)
 
     def create_image_button(self, source, on_press_callback):
         """Creates a reusable image button."""

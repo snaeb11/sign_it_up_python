@@ -12,7 +12,9 @@ from kivy.uix.label import Label
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from kivymd.app import MDApp
+from register import Account
 from status import status_tracker
+import register
 # Load model once
 model_dict = pickle.load(open('./model.p', 'rb'))
 model = model_dict['model']
@@ -177,7 +179,16 @@ class LetterAScreen(MDScreen):
                         )
                     ],
                 )
-            status_tracker.aStatus = True
+
+            with open("account_data.pkl", "rb") as file:
+                account = pickle.load(file)
+
+            account.aStatus = True
+
+            with open("account_data.pkl", "wb") as file:
+                pickle.dump(account, file)
+
+            ##status_tracker.aStatus = True
             print(status_tracker.aStatus, "<-- vowels_screen")
             self.dialog.open()
             self.dialog_shown = True
@@ -286,6 +297,9 @@ class LetterEScreen(MDScreen):
                 except:
                     prediction_text = "Prediction error"
 
+        if prediction_text == "No hand detected":
+            self.reset_gesture_timer()
+
         self.label.text = prediction_text
 
         # Display camera feed
@@ -331,7 +345,13 @@ class LetterEScreen(MDScreen):
                     ],
                 )
 
-            status_tracker.eStatus = True
+            with open("account_data.pkl", "rb") as file:
+                account = pickle.load(file)
+
+            account.eStatus = True
+
+            with open("account_data.pkl", "wb") as file:
+                pickle.dump(account, file)
             print("e korek")
             self.dialog.open()
             self.dialog_shown = True
@@ -488,7 +508,13 @@ class LetterIScreen(MDScreen):
                         )
                     ],
                 )
-            status_tracker.iStatus = True
+            with open("account_data.pkl", "rb") as file:
+                account = pickle.load(file)
+
+            account.iStatus = True
+
+            with open("account_data.pkl", "wb") as file:
+                pickle.dump(account, file)
             print("i korek")
             self.dialog.open()
             self.dialog_shown = True
@@ -643,7 +669,13 @@ class LetterOScreen(MDScreen):
                         )
                     ],
                 )
-            status_tracker.oStatus = True
+            with open("account_data.pkl", "rb") as file:
+                account = pickle.load(file)
+
+            account.oStatus = True
+
+            with open("account_data.pkl", "wb") as file:
+                pickle.dump(account, file)
             self.dialog.open()
             self.dialog_shown = True
 
@@ -797,7 +829,13 @@ class LetterUScreen(MDScreen):
                         )
                     ],
                 )
-            status_tracker.uStatus = True
+            with open("account_data.pkl", "rb") as file:
+                account = pickle.load(file)
+
+            account.uStatus = True
+
+            with open("account_data.pkl", "wb") as file:
+                pickle.dump(account, file)
             self.dialog.open()
             self.dialog_shown = True
 

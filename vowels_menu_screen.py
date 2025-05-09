@@ -1,3 +1,6 @@
+import os
+import pickle
+
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screen import MDScreen
 from kivymd.app import MDApp
@@ -101,92 +104,97 @@ class VowelMenuScreen(MDScreen):
         # Clear existing widgets first
         self.layout.clear_widgets()
 
-        # a button
-        if status_tracker.aStatus:
-            aBtn = ImageButton(
-                source=f'assets/checkAa.png',
-                size_hint=(None, None),
-                size=(dp(150), dp(150)),
-                disabled=True
-            )
+        if not os.path.exists("account_data.pkl"):
+            print("No account_data.pkl found. Creating new account.")
+            self.create_default_account()
         else:
-            aBtn = ImageButton(
-                source=f'assets/aA.png',
-                size_hint=(None, None),
-                size=(dp(150), dp(150)),
-            )
+            with open("account_data.pkl", "rb") as file:
+                account = pickle.load(file)
 
-        # e button
-        if status_tracker.eStatus:
-            eBtn = ImageButton(
-                source=f'assets/checkEe.png',
-                size_hint=(None, None),
-                size=(dp(150), dp(150)),
-                disabled=True
-            )
-        else:
-            eBtn = ImageButton(
-                source=f'assets/eE.png',
-                size_hint=(None, None),
-                size=(dp(150), dp(150)),
-            )
+            # a button
+            if account.aStatus:
+                aBtn = ImageButton(
+                    source=f'assets/checkAa.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150))
+                )
+            else:
+                aBtn = ImageButton(
+                    source=f'assets/aA.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150)),
+                )
 
-        # i button
-        if status_tracker.iStatus:
-            iBtn = ImageButton(
-                source=f'assets/checkIi.png',
-                size_hint=(None, None),
-                size=(dp(150), dp(150)),
-                disabled=True
-            )
-        else:
-            iBtn = ImageButton(
-                source=f'assets/Ii.png',
-                size_hint=(None, None),
-                size=(dp(150), dp(150)),
-            )
+            # e button
+            if account.eStatus:
+                eBtn = ImageButton(
+                    source=f'assets/checkEe.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150))
+                )
+            else:
+                eBtn = ImageButton(
+                    source=f'assets/eE.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150)),
+                )
 
-        # o button
-        if status_tracker.oStatus:
-            oBtn = ImageButton(
-                source=f'assets/checkOo.png',
-                size_hint=(None, None),
-                size=(dp(150), dp(150)),
-                disabled=True
-            )
-        else:
-            oBtn = ImageButton(
-                source=f'assets/Oo.png',
-                size_hint=(None, None),
-                size=(dp(150), dp(150)),
-            )
+            # i button
+            if account.iStatus:
+                iBtn = ImageButton(
+                    source=f'assets/checkIi.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150))
+                )
+            else:
+                iBtn = ImageButton(
+                    source=f'assets/Ii.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150)),
+                )
 
-        # u button
-        if status_tracker.uStatus:
-            uBtn = ImageButton(
-                source=f'assets/checkUu.png',
-                size_hint=(None, None),
-                size=(dp(150), dp(150)),
-                disabled=True
-            )
-        else:
-            uBtn = ImageButton(
-                source=f'assets/Uu.png',
-                size_hint=(None, None),
-                size=(dp(150), dp(150)),
-            )
+            # o button
+            if account.oStatus:
+                oBtn = ImageButton(
+                    source=f'assets/checkOo.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150))
+                )
+            else:
+                oBtn = ImageButton(
+                    source=f'assets/Oo.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150)),
+                )
 
-        aBtn.bind(on_press=self.open_letter_a)
-        eBtn.bind(on_press=self.open_letter_e)
-        iBtn.bind(on_press=self.open_letter_i)
-        oBtn.bind(on_press=self.open_letter_o)
-        uBtn.bind(on_press=self.open_letter_u)
+            # u button
+            if account.uStatus:
+                uBtn = ImageButton(
+                    source=f'assets/checkUu.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150))
+                )
+            else:
+                uBtn = ImageButton(
+                    source=f'assets/Uu.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150)),
+                )
 
-        self.layout.add_widget(aBtn)
-        self.layout.add_widget(eBtn)
-        self.layout.add_widget(iBtn)
-        self.layout.add_widget(oBtn)
-        self.layout.add_widget(uBtn)
+            aBtn.bind(on_press=self.open_letter_a)
+            eBtn.bind(on_press=self.open_letter_e)
+            iBtn.bind(on_press=self.open_letter_i)
+            oBtn.bind(on_press=self.open_letter_o)
+            uBtn.bind(on_press=self.open_letter_u)
+
+            self.layout.add_widget(aBtn)
+            self.layout.add_widget(eBtn)
+            self.layout.add_widget(iBtn)
+            self.layout.add_widget(oBtn)
+            self.layout.add_widget(uBtn)
+
+    def create_default_account(self):
+        print('yawa')
 
     def on_enter(self):
         # Ensure this method is called when returning to the screen

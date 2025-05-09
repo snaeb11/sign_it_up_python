@@ -5,12 +5,15 @@ import numpy as np
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from kivy.uix.image import Image
+from kivymd.uix.dialog import MDDialog
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.progressbar import MDProgressBar
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screen import MDScreen
 from kivy.metrics import dp
+from kivymd.app import MDApp
 
 # --- Load model and MediaPipe once ---
 model_dict = pickle.load(open('./model.p', 'rb'))
@@ -26,6 +29,7 @@ class IntroScreen(MDScreen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.dialog_shown = False
         self.capture = None
         self.event = None
         self.gesture_timer_event = None
@@ -43,7 +47,7 @@ class IntroScreen(MDScreen):
 
         # Title
         self.layout.add_widget(MDLabel(
-            text="Sing-it-Up: Learn Filipino Sign Language Through Play",
+            text="Sign-it-Up: Learn Filipino Sign Language Through Play",
             theme_text_color="Primary",
             font_style="H5",
             halign="center",
@@ -53,7 +57,7 @@ class IntroScreen(MDScreen):
 
         # Introduction paragraph
         self.layout.add_widget(MDLabel(
-            text="Sing-it-Up is a fun and interactive mobile game designed to help users learn Filipino Sign Language (FSL) in an exciting and engaging way! "
+            text="Sign-it-Up is a fun and interactive mobile game designed to help users learn Filipino Sign Language (FSL) in an exciting and engaging way! "
                  "Using your phone’s camera, the game detects and evaluates your hand gestures in real time. Your goal? Match the correct sign for letters and basic words to move through each level and improve your skills.",
             theme_text_color="Secondary",
             halign="left",
@@ -123,7 +127,7 @@ class IntroScreen(MDScreen):
 
         # Section: Why Sing-it-Up?
         self.layout.add_widget(MDLabel(
-            text="Why Sing-it-Up?",
+            text="Why Sign-it-Up?",
             theme_text_color="Primary",
             font_style="H6",
             halign="left",
@@ -153,11 +157,9 @@ class IntroScreen(MDScreen):
         )
         self.layout.add_widget(self.label)
 
-        # Start button
-        self.layout.add_widget(MDRaisedButton(
-            text='Start Playing!',
-            pos_hint={'center_x': 0.5}
-        ))
+        self.progress_bar = MDProgressBar(value=0, max=100)
+        self.layout.add_widget(self.progress_bar)
+        self.gesture_target_time = 3
 
         scroll.add_widget(self.layout)
         self.add_widget(scroll)
@@ -240,13 +242,50 @@ class IntroScreen(MDScreen):
 
     def update_gesture_timer(self, dt):
         self.gesture_hold_time += dt
+        progress = (self.gesture_hold_time / self.gesture_target_time) * 100  # <------------
+        self.progress_bar.value = progress  # <-------------
+
         if self.gesture_hold_time >= 3:
-            self.label.text = "Gesture confirmed! 🎉"
+            self.label.text = "Gesture confirmed!"
             self.reset_gesture_timer()
+            self.show_success_dialog()
             # You can add screen change or dialog here
+
+    def show_success_dialog(self):
+        if not self.dialog_shown:
+            prediction_text = "You have successfully done the letter!"
+            if not hasattr(self, 'dialog') or not self.dialog:
+                self.dialog = MDDialog(
+                    title="🎉 Congratulations! 🎉",
+                    text="You did an amazing job!",
+                    radius=[20, 7, 20, 7],
+                    buttons=[
+                        MDRaisedButton(
+                            text="Thank you!",
+                            on_release=lambda x: (self.dialog.dismiss(), self.go_back())
+                        )
+                    ],
+                )
+
+            with open("account_data.pkl", "rb") as file:
+                account = pickle.load(file)
+
+            account.introStatus = True
+
+            with open("account_data.pkl", "wb") as file:
+                pickle.dump(account, file)
+
+            print("thumbs up korek")
+            self.dialog.open()
+            self.dialog_shown = True
+
+    def go_back(self, *args):
+        app = MDApp.get_running_app()
+        app.openMain()
 
     def reset_gesture_timer(self):
         self.gesture_hold_time = 0
         if self.gesture_timer_event:
             Clock.unschedule(self.gesture_timer_event)
             self.gesture_timer_event = None
+        self.progress_bar.value = 0

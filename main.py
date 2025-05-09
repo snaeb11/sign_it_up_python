@@ -43,7 +43,7 @@ class SignItUp(MDApp):
 
         self.sm = ScreenManager()
         self.register_screen = RegisterScreen(name='register')
-        self.welcome_screen = WelcomeScreen(name='welcome')
+        ##self.welcome_screen = WelcomeScreen(name='welcome')
         self.bottom_nav_screen = BottomNavScreen(name='bottom_nav')
         self.vowels_menu_screen = VowelMenuScreen(name='vowels_menu')
         self.intro_screen = IntroScreen(name='intro')
@@ -57,7 +57,7 @@ class SignItUp(MDApp):
         self.letter_o_screen = LetterOScreen(name='o_screen')
         self.letter_u_screen = LetterUScreen(name='u_screen')
 
-        self.sm.add_widget(self.welcome_screen)
+        ##self.sm.add_widget(self.welcome_screen)
         self.sm.add_widget(self.register_screen)
         self.sm.add_widget(self.bottom_nav_screen)
         self.sm.add_widget(self.vowels_menu_screen)
@@ -72,12 +72,17 @@ class SignItUp(MDApp):
         self.sm.add_widget(self.letter_o_screen)
         self.sm.add_widget(self.letter_u_screen)
 
-        self.sm.current = 'welcome'
+        self.sm.current = "bottom_nav"
         return self.sm
     
     def openVowelsMenu (self):
      print('vowels menu')
      self.sm.current = 'vowels_menu'
+
+    def openMain (self):
+     print('open menu')
+     self.sm.current = 'bottom_nav'
+
 
     def openIntro (self):
      print('intro')
