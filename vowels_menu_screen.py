@@ -126,7 +126,14 @@ class VowelMenuScreen(MDScreen):
                 )
 
             # e button
-            if account.eStatus:
+            if not account.aStatus:
+                eBtn = ImageButton(
+                    source=f'assets/lockEe.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150)),
+                    disabled = True
+                )
+            elif account.eStatus:
                 eBtn = ImageButton(
                     source=f'assets/checkEe.png',
                     size_hint=(None, None),
@@ -140,7 +147,14 @@ class VowelMenuScreen(MDScreen):
                 )
 
             # i button
-            if account.iStatus:
+            if not account.eStatus:
+                iBtn = ImageButton(
+                    source=f'assets/lockIi.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150)),
+                    disabled=True
+                )
+            elif account.iStatus:
                 iBtn = ImageButton(
                     source=f'assets/checkIi.png',
                     size_hint=(None, None),
@@ -154,7 +168,14 @@ class VowelMenuScreen(MDScreen):
                 )
 
             # o button
-            if account.oStatus:
+            if not account.iStatus:
+                oBtn = ImageButton(
+                    source=f'assets/lockOo.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150)),
+                    disabled=True
+                )
+            elif account.oStatus:
                 oBtn = ImageButton(
                     source=f'assets/checkOo.png',
                     size_hint=(None, None),
@@ -168,7 +189,14 @@ class VowelMenuScreen(MDScreen):
                 )
 
             # u button
-            if account.uStatus:
+            if not account.oStatus:
+                uBtn = ImageButton(
+                    source=f'assets/lockUu.png',
+                    size_hint=(None, None),
+                    size=(dp(150), dp(150)),
+                    disabled=True
+                )
+            elif account.uStatus:
                 uBtn = ImageButton(
                     source=f'assets/checkUu.png',
                     size_hint=(None, None),
