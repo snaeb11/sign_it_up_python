@@ -951,6 +951,7 @@ class LetterUScreen(MDScreen):
                 account = pickle.load(file)
 
             account.uStatus = True
+            account.vowelScreen = True
 
             with open("account_data.pkl", "wb") as file:
                 pickle.dump(account, file)

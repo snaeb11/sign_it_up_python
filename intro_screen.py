@@ -143,6 +143,15 @@ class IntroScreen(MDScreen):
             text_size=(dp(300), None),
         ))
 
+        self.layout.add_widget(MDLabel(
+            text="To begin, do a THUMBS UP towards the Camera.",
+            theme_text_color="Primary",
+            font_style="H6",
+            halign="center",
+            size_hint_y=None,
+            height=dp(30)
+        ))
+
         # Camera preview
         self.image = Image(size_hint_y=None, height=300)
         self.layout.add_widget(self.image)

@@ -1,6 +1,7 @@
 import os
 import pickle
 
+from kivy.uix.scrollview import ScrollView
 from kivymd.uix.screen import MDScreen
 from kivymd.app import MDApp
 from kivymd.uix.bottomnavigation import MDBottomNavigation, MDBottomNavigationItem
@@ -126,17 +127,21 @@ class BottomNavScreen(MDScreen):
         # Buttons
         vowels_button = self.create_image_button('assets/vowels.png', self.open_vowels_menu)
         intro_button = self.create_image_button('assets/intro.png', self.open_intro)
+        vowels_challenge_button = self.create_image_button('assets/vowelsChallengeClick.png', self.open_intro)
+
 
         # Button row centered horizontally
         self.home_layout = MDBoxLayout(
             orientation='horizontal',
             spacing=20,
             size_hint=(None, None),
-            size=(320, 150),  # 2 buttons * 150 + 20 spacing
+            size=(490, 150),  # 3 buttons * 150 + 2 gaps * 20
             pos_hint={'center_x': 0.5}
         )
+
         self.home_layout.add_widget(intro_button)
         self.home_layout.add_widget(vowels_button)
+        self.home_layout.add_widget(vowels_challenge_button)
 
         # Remove from previous parent if needed
         if self.welcome_label.parent:
@@ -179,8 +184,18 @@ class BottomNavScreen(MDScreen):
         else:
             intro_button = self.create_image_button('assets/intro.png', self.open_intro)
 
+        ##vowels chalneghes butotn
+        if not account.vowelScreen:
+            vowels_challenge_button = self.create_image_button('assets/vowelsChallengeLocked.png', self.open_intro)
+            vowels_challenge_button.disabled = True
+        elif account.easyChallenge and account.intermediateChallenge and account.hardChallenge:
+            vowels_challenge_button = self.create_image_button('assets/vowelsChallengeCheck.png', self.open_intro)
+        else:
+            vowels_challenge_button = self.create_image_button('assets/vowelsChallengeClick.png', self.open_intro)
+
         self.home_layout.add_widget(intro_button)
         self.home_layout.add_widget(vowels_button)
+        self.home_layout.add_widget(vowels_challenge_button)
 
     def create_profile_section(self, username):
         try:

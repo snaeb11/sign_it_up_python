@@ -23,6 +23,9 @@ class Account:
         # Intro screen status
         self.introStatus = False
 
+        ## vowels screen, if true all vowels are cleared
+        self.vowelScreen = False
+
         # achievement
         self.achievementOne = False
         self.achievementTwo = False
