@@ -277,7 +277,6 @@ class IntroScreen(MDScreen):
 
             print("thumbs up korek")
             self.dialog.open()
-            self.dialog_shown = True
 
     def go_back(self, *args):
         app = MDApp.get_running_app()

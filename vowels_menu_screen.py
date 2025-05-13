@@ -2,6 +2,7 @@ import os
 import pickle
 
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.screen import MDScreen
 from kivymd.app import MDApp
 from kivymd.uix.scrollview import MDScrollView
@@ -221,6 +222,15 @@ class VowelMenuScreen(MDScreen):
             self.layout.add_widget(oBtn)
             self.layout.add_widget(uBtn)
 
+            self.add_widget(MDRaisedButton(
+                text='Back to Menu',
+                md_bg_color='gray',
+                on_release=self.go_back,
+                size_hint=(0.5, None),
+                pos_hint={'center_x': 0.5,
+                          'center_y': 0.3}
+            ))
+
     def create_default_account(self):
         print('yawa')
 
@@ -228,3 +238,7 @@ class VowelMenuScreen(MDScreen):
         # Ensure this method is called when returning to the screen
         print(status_tracker.aStatus, "<-- vowels_menu_screen")
         self.add_vowel_buttons()  # Update the button based on the status
+
+    def go_back(self, *args):
+        app = MDApp.get_running_app()
+        app.openMain()
