@@ -1,5 +1,6 @@
 import os
 import pickle
+
 from kivymd.uix.screen import MDScreen
 from kivymd.app import MDApp
 from kivymd.uix.bottomnavigation import MDBottomNavigation, MDBottomNavigationItem
@@ -8,6 +9,19 @@ from kivymd.uix.label import MDLabel
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
 from register import Account
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.image import Image
+from kivy.uix.widget import Widget
+from kivymd.app import MDApp
+from kivymd.uix.bottomnavigation import MDBottomNavigation, MDBottomNavigationItem
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDIconButton
+from kivymd.uix.label import MDLabel
+from kivymd.uix.progressbar import MDProgressBar
+from kivymd.uix.screen import MDScreen
+from kivy.uix.anchorlayout import AnchorLayout
+
 
 
 class ImageButton(ButtonBehavior, Image):
@@ -68,44 +82,68 @@ class BottomNavScreen(MDScreen):
 
     def create_gui(self, username):
         """Creates the GUI components after account data is loaded."""
-        if len(self.children) > 0:
-            return  # Prevent adding duplicate layouts
-
-        top_layout = MDBoxLayout(orientation="vertical", size_hint=(1, 1.7))
-        top_layout.add_widget(self.welcome_label)
 
         bottom_nav = MDBottomNavigation()
 
         # Home Tab
-        self.home_tab = self.create_home_tab()
+        home_tab = self.create_home_tab(username)
 
-        # Hand Tab
-        hand_tab = MDBottomNavigationItem(name="handScreen", text="Hand", icon="hand-back-left-outline")
-        hand_tab.add_widget(MDLabel(text='HAND', halign='center'))
+        # Account Tab (Profile)
+        account_tab = MDBottomNavigationItem(name="accountScreen", text="Profile", icon="account")
+        account_tab.add_widget(self.create_profile_section(username))
 
-        # Menu Tab
-        menu_tab = MDBottomNavigationItem(name="menuScreen", text="Menu", icon="menu")
-        menu_tab.add_widget(MDLabel(text='MENU', halign='center'))
+        # Settings Tab
+        settings_tab = MDBottomNavigationItem(name="settingsScreen", text="Settings", icon="tools")
+        settings_tab.add_widget(MDLabel(text='SETTINGS'))
 
-        bottom_nav.add_widget(self.home_tab)
-        bottom_nav.add_widget(hand_tab)
-        bottom_nav.add_widget(menu_tab)
+        bottom_nav.add_widget(home_tab)
+        bottom_nav.add_widget(account_tab)
+        bottom_nav.add_widget(settings_tab)
 
         self.add_widget(bottom_nav)
-        self.add_widget(top_layout)
 
-    def create_home_tab(self):
-        """Creates the home tab and layout container."""
+    def create_home_tab(self, username):
+        """Creates the home tab with centered welcome message and buttons."""
         home_tab = MDBottomNavigationItem(name="homeScreen", text="Home", icon="home")
 
-        self.home_layout = MDBoxLayout(
-            orientation='horizontal', spacing=20, padding=[10, 10, 10, 10],
-            size_hint=(None, None), size=(300, 150), pos_hint={'center_x': 0.5, 'center_y': 0.5}
+        # Create welcome label if not already created
+        if not self.welcome_label:
+            self.create_account_label(username)
+
+        # Ensure welcome label has fixed height
+        self.welcome_label.size_hint_y = None
+        self.welcome_label.height = 50
+
+        # Vertical layout to hold welcome label and buttons, centered
+        content_layout = MDBoxLayout(
+            orientation='vertical',
+            spacing=20,
+            size_hint=(None, None),
+            size=(400, 250),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5}
         )
 
-        home_tab.add_widget(self.home_layout)
-        self.refresh_home_tab()
+        # Buttons
+        vowels_button = self.create_image_button('assets/vowels.png', self.open_vowels_menu)
+        intro_button = self.create_image_button('assets/intro.png', self.open_intro)
 
+        # Button row centered horizontally
+        self.home_layout = MDBoxLayout(
+            orientation='horizontal',
+            spacing=20,
+            size_hint=(None, None),
+            size=(320, 150),  # 2 buttons * 150 + 20 spacing
+            pos_hint={'center_x': 0.5}
+        )
+        self.home_layout.add_widget(intro_button)
+        self.home_layout.add_widget(vowels_button)
+
+        # Add widgets to content layout
+        content_layout.add_widget(self.welcome_label)
+        content_layout.add_widget(self.home_layout)
+
+        # Add content to tab
+        home_tab.add_widget(content_layout)
         return home_tab
 
     def refresh_home_tab(self):
@@ -136,6 +174,192 @@ class BottomNavScreen(MDScreen):
 
         self.home_layout.add_widget(intro_button)
         self.home_layout.add_widget(vowels_button)
+
+    def create_profile_section(self, username):
+        try:
+            with open("account_data.pkl", "rb") as file:
+                account = pickle.load(file)
+
+            # ✅ Lesson Progress (5 lessons only: A, E, I, O, U)
+            lesson_flags = [
+                account.aStatus,
+                account.eStatus,
+                account.iStatus,
+                account.oStatus,
+                account.uStatus
+            ]
+            lesson_progress = sum(lesson_flags)
+            progress_percent = int((lesson_progress / len(lesson_flags)) * 100)
+
+            # ✅ Achievement Progress (now includes introStatus too)
+            achievement_flags = [
+                account.introStatus,
+                account.aStatus,
+                account.eStatus,
+                account.iStatus,
+                account.oStatus,
+                account.uStatus,
+                account.achievementOne,
+                account.achievementTwo,
+                account.achievementThree,
+                account.achievementFour
+            ]
+            achievement_progress = sum(achievement_flags)
+            achievement_percent = int((achievement_progress / len(achievement_flags)) * 100)
+
+        except Exception as e:
+            print(f"Failed to load account data: {e}")
+
+        # Outer layout with top padding
+        outer_layout = MDBoxLayout(
+            orientation="vertical",
+            padding=(50, 10, 50, 10),  # left, top, right, bottom
+            spacing=10,
+            size_hint=(1, 1),
+        )
+
+        # Inner layout with actual content
+        layout = MDBoxLayout(
+            orientation="vertical",
+            spacing=10,
+            size_hint_y=None,
+        )
+
+        # Header
+        header = MDBoxLayout(
+            orientation="horizontal",
+            spacing=10,
+            size_hint_y=None,
+            height=40
+        )
+        user_label = MDLabel(
+            text=f"Hello, {username}",
+            font_style='H5',
+            valign='middle'
+        )
+        header.add_widget(user_label)
+        layout.add_widget(header)
+
+        # Progression Tracker Label
+        tracker_label = MDLabel(
+            text="Progression Tracker:",
+            font_style='H6',
+            size_hint_y=None,
+            height=20
+        )
+        layout.add_widget(tracker_label)
+
+        # Progress: Lesson
+        lesson_box = MDBoxLayout(orientation='vertical', size_hint_y=None, height=45, spacing=3)
+        lesson_box.add_widget(MDLabel(
+            text=f"Lesson Progress - {progress_percent}%",
+            theme_text_color="Primary",
+            size_hint_y=None,
+            height=20
+        ))
+        lesson_box.add_widget(MDProgressBar(value=progress_percent, size_hint_y=None, height=15))
+        layout.add_widget(lesson_box)
+
+        # Progress: Achievement
+        achievement_box = MDBoxLayout(orientation='vertical', size_hint_y=None, height=45, spacing=3)
+        achievement_box.add_widget(MDLabel(
+            text=f"Achievement Progress - {achievement_percent}%",
+            theme_text_color="Primary",
+            size_hint_y=None,
+            height=20
+        ))
+        achievement_box.add_widget(MDProgressBar(value=achievement_percent, size_hint_y=None, height=15))
+        layout.add_widget(achievement_box)
+
+        # Spacer before Achievement Badges
+        layout.add_widget(Widget(size_hint_y=None, height=5))
+
+        # Achievement Badges Section
+        layout.add_widget(MDLabel(
+            text="ACHIEVEMENT BADGES",
+            font_style='H6',
+            halign='center',
+            size_hint_y=None,
+            height=30
+        ))
+
+        # Grid of Badges
+        badges_grid = GridLayout(
+            cols=5,
+            spacing=[30, 12],
+            padding=[40, 2, 0, 10],
+            size_hint=(None, None),
+            row_force_default=True,
+            row_default_height=100,
+        )
+        badges_grid.bind(minimum_height=badges_grid.setter('height'),
+                         minimum_width=badges_grid.setter('width'))
+
+        badge_icons = [
+            'star', 'fire', 'gesture', 'book', 'brain',
+            'lock', 'lightbulb', 'trophy', 'medal', 'rocket'
+        ]
+
+        # Achievement badge descriptions
+        badge_descriptions = [
+            "Start of a Journey!",
+            "A-mazing!",
+            "E-xcellent!",
+            "I-ncredible!",
+            "O-utstanding!",
+            "U-nstoppable!",
+            "Mastered the Basics!",
+            "Stepping Up the Game!",
+            "Conquered the Challenge!",
+            "The Completionist"
+        ]
+
+        for i, icon in enumerate(badge_icons):
+            unlocked = achievement_flags[i]
+            description = badge_descriptions[i] if unlocked else "Locked"
+
+            # Create the icon button for the badge
+            badge_button = MDIconButton(
+                icon=icon,
+                icon_size="60sp",
+                theme_text_color="Custom",
+                text_color=(1, 1, 1, 1),
+                pos_hint={"center_x": 0.5},
+            )
+
+            # Create a label for the badge description
+            badge_label = MDLabel(
+                text=description,
+                halign="center",
+                theme_text_color="Custom",
+                text_color=(1, 1, 1, 1),
+                font_style="Caption",
+                size_hint_y=None,
+                height=20
+            )
+
+            # Add the badge button and label to a container layout
+            badge_layout = MDBoxLayout(
+                orientation='vertical',
+                spacing=5,
+                size_hint=(None, None),
+                width=100,
+                height=100,
+                padding=[0, 10, 0, 0],
+                pos_hint={'center_x': 0.5}
+            )
+            badge_layout.add_widget(badge_button)
+            badge_layout.add_widget(badge_label)
+
+            # Add the badge layout to the grid
+            badges_grid.add_widget(badge_layout)
+
+        layout.add_widget(badges_grid)
+
+        # Add inner layout to outer layout
+        outer_layout.add_widget(layout)
+
+        return outer_layout
 
     def create_image_button(self, source, on_press_callback):
         """Creates a reusable image button."""
