@@ -138,9 +138,16 @@ class BottomNavScreen(MDScreen):
         self.home_layout.add_widget(intro_button)
         self.home_layout.add_widget(vowels_button)
 
+        # Remove from previous parent if needed
+        if self.welcome_label.parent:
+            self.welcome_label.parent.remove_widget(self.welcome_label)
+
         # Add widgets to content layout
         content_layout.add_widget(self.welcome_label)
         content_layout.add_widget(self.home_layout)
+
+        # Refresh actual buttons with logic (check progress)
+        self.refresh_home_tab()
 
         # Add content to tab
         home_tab.add_widget(content_layout)
