@@ -1,13 +1,16 @@
+import os
 import pickle
 import cv2
 import mediapipe as mp
 import numpy as np
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.video import Video
 from kivymd.uix.dialog import MDDialog
 
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton
-from kivy.uix.image import Image
+from kivy.uix.image import Image, AsyncImage
 from kivy.uix.label import Label
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
@@ -48,15 +51,37 @@ class LetterAScreen(MDScreen):
                                   size=(400, 500),
                                   pos_hint={'center_x': 0.5, 'center_y': 0.5})
 
-        self.image = Image()
-        self.label = Label(text="Detecting...", font_size=20)
+        self.image = Image(
+            size_hint=(None, None),
+            width=200,
+            height=200
+        )
 
-        # Progress bar to show the gesture hold time
+        self.gif_image = AsyncImage(
+            source='assets/gif/GIFLetterA.gif',
+            allow_stretch=True,
+            size_hint=(None, None),
+            width=200,
+            height=200,
+            anim_delay=0.05
+        )
+
+        self.label = Label(text="Detecting...", font_size=20)
         self.progress_bar = MDProgressBar(value=0, max=100)
 
-        self.layout.add_widget(self.image)
+        side_by_side_layout = BoxLayout(
+            orientation='horizontal',
+            spacing=5,
+            size_hint=(1, None),
+            height=200
+        )
+
+        side_by_side_layout.add_widget(self.image)
+        side_by_side_layout.add_widget(self.gif_image)
+
+        self.layout.add_widget(side_by_side_layout)
         self.layout.add_widget(self.label)
-        self.layout.add_widget(self.progress_bar)  # Add progress bar to layout
+        self.layout.add_widget(self.progress_bar)
         self.layout.add_widget(MDRaisedButton(
             text='Back to Menu',
             md_bg_color='gray',
@@ -217,15 +242,39 @@ class LetterEScreen(MDScreen):
                                   size=(400, 500),
                                   pos_hint={'center_x': 0.5, 'center_y': 0.5})
 
-        self.image = Image()
+
+        self.image = Image(
+            size_hint=(None, None),
+            width=200,
+            height=200
+        )
+
+
+        self.gif_image = AsyncImage(
+            source='assets/gif/GIFLetterE.gif',
+            allow_stretch=True,
+            size_hint=(None, None),
+            width=200,
+            height=200,
+            anim_delay=0.05
+        )
+
         self.label = Label(text="Detecting...", font_size=20)
+        self.progress_bar = MDProgressBar(value=0, max=100)
 
-        self.progress_bar = MDProgressBar(value=0, max=100) # <----------------
+        side_by_side_layout = BoxLayout(
+            orientation='horizontal',
+            spacing=5,
+            size_hint=(1, None),
+            height=200
+        )
 
+        side_by_side_layout.add_widget(self.image)
+        side_by_side_layout.add_widget(self.gif_image)
 
-        self.layout.add_widget(self.image)
+        self.layout.add_widget(side_by_side_layout)
         self.layout.add_widget(self.label)
-        self.layout.add_widget(self.progress_bar)  # <-------------------
+        self.layout.add_widget(self.progress_bar)
         self.layout.add_widget(MDRaisedButton(
             text='Back to Menu',
             md_bg_color='gray',
@@ -380,12 +429,35 @@ class LetterIScreen(MDScreen):
                                   size=(400, 500),
                                   pos_hint={'center_x': 0.5, 'center_y': 0.5})
 
-        self.image = Image()
-        self.label = Label(text="Detecting...", font_size=20)
+        self.image = Image(
+            size_hint=(None, None),
+            width=200,
+            height=200
+        )
 
+        self.gif_image = AsyncImage(
+            source='assets/gif/GIFLetterI.gif',
+            allow_stretch=True,
+            size_hint=(None, None),
+            width=200,
+            height=200,
+            anim_delay=0.05
+        )
+
+        self.label = Label(text="Detecting...", font_size=20)
         self.progress_bar = MDProgressBar(value=0, max=100)
 
-        self.layout.add_widget(self.image)
+        side_by_side_layout = BoxLayout(
+            orientation='horizontal',
+            spacing=5,
+            size_hint=(1, None),
+            height=200
+        )
+
+        side_by_side_layout.add_widget(self.image)
+        side_by_side_layout.add_widget(self.gif_image)
+
+        self.layout.add_widget(side_by_side_layout)
         self.layout.add_widget(self.label)
         self.layout.add_widget(self.progress_bar)
         self.layout.add_widget(MDRaisedButton(
@@ -543,12 +615,35 @@ class LetterOScreen(MDScreen):
                                   size=(400, 500),
                                   pos_hint={'center_x': 0.5, 'center_y': 0.5})
 
-        self.image = Image()
-        self.label = Label(text="Detecting...", font_size=20)
+        self.image = Image(
+            size_hint=(None, None),
+            width=200,
+            height=200
+        )
 
+        self.gif_image = AsyncImage(
+            source='assets/gif/GIFLetterO.gif',
+            allow_stretch=True,
+            size_hint=(None, None),
+            width=200,
+            height=200,
+            anim_delay=0.05
+        )
+
+        self.label = Label(text="Detecting...", font_size=20)
         self.progress_bar = MDProgressBar(value=0, max=100)
 
-        self.layout.add_widget(self.image)
+        side_by_side_layout = BoxLayout(
+            orientation='horizontal',
+            spacing=5,
+            size_hint=(1, None),
+            height=200
+        )
+
+        side_by_side_layout.add_widget(self.image)
+        side_by_side_layout.add_widget(self.gif_image)
+
+        self.layout.add_widget(side_by_side_layout)
         self.layout.add_widget(self.label)
         self.layout.add_widget(self.progress_bar)
         self.layout.add_widget(MDRaisedButton(
@@ -703,12 +798,35 @@ class LetterUScreen(MDScreen):
                                   size=(400, 500),
                                   pos_hint={'center_x': 0.5, 'center_y': 0.5})
 
-        self.image = Image()
-        self.label = Label(text="Detecting...", font_size=20)
+        self.image = Image(
+            size_hint=(None, None),
+            width=200,
+            height=200
+        )
 
+        self.gif_image = AsyncImage(
+            source='assets/gif/GIFLetterU.gif',
+            allow_stretch=True,
+            size_hint=(None, None),
+            width=200,
+            height=200,
+            anim_delay=0.05
+        )
+
+        self.label = Label(text="Detecting...", font_size=20)
         self.progress_bar = MDProgressBar(value=0, max=100)
 
-        self.layout.add_widget(self.image)
+        side_by_side_layout = BoxLayout(
+            orientation='horizontal',
+            spacing=5,
+            size_hint=(1, None),
+            height=200
+        )
+
+        side_by_side_layout.add_widget(self.image)
+        side_by_side_layout.add_widget(self.gif_image)
+
+        self.layout.add_widget(side_by_side_layout)
         self.layout.add_widget(self.label)
         self.layout.add_widget(self.progress_bar)
         self.layout.add_widget(MDRaisedButton(
