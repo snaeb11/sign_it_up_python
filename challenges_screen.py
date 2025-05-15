@@ -17,9 +17,9 @@ class ImageButton(ButtonBehavior, Image):
     pass
 
 class ChallengesScreen(MDScreen):
-    def open_letter_a(self, *args):
+    def open_vowel_easy(self, *args):
         app = MDApp.get_running_app()
-        app.openLetterA()
+        app.openVowelEasy()
 
     def open_letter_e(self, *args):
         app = MDApp.get_running_app()
@@ -170,7 +170,7 @@ class ChallengesScreen(MDScreen):
                 )
 
 
-            easyBtn.bind(on_press=self.open_letter_a)
+            easyBtn.bind(on_press=self.open_vowel_easy)
             intermediateBtn.bind(on_press=self.open_letter_e)
             hardBtn.bind(on_press=self.open_letter_i)
 

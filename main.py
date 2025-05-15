@@ -2,6 +2,7 @@ import subprocess
 import sys
 
 from challenges_screen import ChallengesScreen
+from vowels_easy_screen import *
 
 # List of required packages
 required_packages = ['kivy', 'kivymd', 'mediapipe', 'opencv-python', 'numpy', 'scikit-learn', 'cycler', 'matplotlib']
@@ -42,11 +43,18 @@ class SignItUp(MDApp):
 
         self.sm = ScreenManager()
         self.register_screen = RegisterScreen(name='register')
-        ##self.welcome_screen = WelcomeScreen(name='welcome')
         self.bottom_nav_screen = BottomNavScreen(name='bottom_nav')
         self.vowels_menu_screen = VowelMenuScreen(name='vowels_menu')
         self.intro_screen = IntroScreen(name='intro')
         self.challenges_screen = ChallengesScreen(name='challenges_menu')
+
+        ##vowels challenges
+        self.vowels_easy_screen = VowelsEasyChallengeScreen(name='vowels_easy')
+        self.first_screen = FirstScreen(name='first_screen')
+        self.second_screen = SecondScreen(name='second_screen')
+        self.third_screen = ThirdScreen(name='third_screen')
+        self.fourth_screen = FourthScreen(name='fourth_screen')
+        self.fifth_screen = FifthScreen(name='fifth_screen')
 
         #vowels screen
         self.letter_a_screen = LetterAScreen(name='a_screen')
@@ -55,13 +63,19 @@ class SignItUp(MDApp):
         self.letter_o_screen = LetterOScreen(name='o_screen')
         self.letter_u_screen = LetterUScreen(name='u_screen')
 
-        ##self.sm.add_widget(self.welcome_screen)
         self.sm.add_widget(self.register_screen)
         self.sm.add_widget(self.bottom_nav_screen)
         self.sm.add_widget(self.vowels_menu_screen)
         self.sm.add_widget(self.intro_screen)
         self.sm.add_widget(self.challenges_screen)
-        #bullied class
+
+        ###
+        self.sm.add_widget(self.vowels_easy_screen)
+        self.sm.add_widget(self.first_screen)
+        self.sm.add_widget(self.second_screen)
+        self.sm.add_widget(self.third_screen)
+        self.sm.add_widget(self.fourth_screen)
+        self.sm.add_widget(self.fifth_screen)
 
         #
         self.sm.add_widget(self.letter_a_screen)
@@ -109,7 +123,15 @@ class SignItUp(MDApp):
      print('letter u')
      self.sm.current = 'u_screen'
 
+    def openVowelEasy (self):
+     print('vowel Easy')
+     self.sm.current = 'vowels_easy'
 
+    def validate_vowel_input(self, instance):
+        text = instance.text
+
+        if len(text) > 1 or not text.isalpha():
+            instance.text = text[:1] if text[:1].isalpha() else ''
 
 #main-run---------------------------------------------------------
 if __name__ == '__main__':

@@ -108,3 +108,17 @@ BoxLayout:
         pos_hint: {"center_x": 0.5}
         on_release: app.show_congratulations_dialog()
 '''
+
+
+vowels_easy_input = '''
+MDTextField:
+    id: vowel_easy_input
+    hint_text: 'Enter your answer'
+    mode: 'rectangle'
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    size_hint_x: None
+    icon_right: "tooltip-question-outline"
+    width: 300
+    on_text: app.validate_vowel_input(self)
+'''
+
