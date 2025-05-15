@@ -1,15 +1,6 @@
 import os
 import pickle
 
-from kivy.uix.scrollview import ScrollView
-from kivymd.uix.screen import MDScreen
-from kivymd.app import MDApp
-from kivymd.uix.bottomnavigation import MDBottomNavigation, MDBottomNavigationItem
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.label import MDLabel
-from kivy.uix.behaviors import ButtonBehavior
-from kivy.uix.image import Image
-from register import Account
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
@@ -17,12 +8,16 @@ from kivy.uix.widget import Widget
 from kivymd.app import MDApp
 from kivymd.uix.bottomnavigation import MDBottomNavigation, MDBottomNavigationItem
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.button import MDIconButton
+from kivymd.uix.button import MDIconButton, MDRaisedButton
+from kivymd.uix.dialog import MDDialog
 from kivymd.uix.label import MDLabel
 from kivymd.uix.progressbar import MDProgressBar
 from kivymd.uix.screen import MDScreen
-from kivy.uix.anchorlayout import AnchorLayout
+from kivymd.uix.slider import MDSlider
+from kivy.app import App
 
+
+from register import Account
 
 
 class ImageButton(ButtonBehavior, Image):
@@ -95,7 +90,7 @@ class BottomNavScreen(MDScreen):
 
         # Settings Tab
         settings_tab = MDBottomNavigationItem(name="settingsScreen", text="Settings", icon="tools")
-        settings_tab.add_widget(MDLabel(text='SETTINGS'))
+        settings_tab.add_widget(self.create_settings_ui())
 
         bottom_nav.add_widget(home_tab)
         bottom_nav.add_widget(account_tab)
@@ -383,6 +378,37 @@ class BottomNavScreen(MDScreen):
 
         return outer_layout
 
+    def create_settings_ui(self):
+        from kivy.metrics import dp
+
+        # Outer vertical layout for spacing
+        layout = MDBoxLayout(orientation='vertical', padding=dp(20), spacing=dp(30), size_hint=(1, 1))
+
+        # Main Music Volume
+        layout.add_widget(MDLabel(text="Main Music Volume", font_style="H6", size_hint_y=None, height=30))
+        self.main_music_slider = MDSlider(min=0, max=100, value=50)
+        self.main_music_slider.bind(value=self.on_music_slider_value_change)
+        layout.add_widget(self.main_music_slider)
+
+        # SFX Volume
+        layout.add_widget(MDLabel(text="SFX Volume", font_style="H6", size_hint_y=None, height=30))
+        self.sfx_slider = MDSlider(min=0, max=100, value=50)
+        self.sfx_slider.bind(value=self.on_sfx_slider_value_change)
+        layout.add_widget(self.sfx_slider)
+
+        # Reset Progress Button
+        reset_button = MDRaisedButton(
+            text="Reset Progress",
+            md_bg_color=(1, 0, 0, 1),
+            size_hint=(None, None),
+            size=(dp(150), dp(50)),
+            pos_hint={'center_x': 0.5}
+        )
+        reset_button.bind(on_press=self.confirm_reset_progress)
+        layout.add_widget(reset_button)
+
+        return layout
+
     def create_image_button(self, source, on_press_callback):
         """Creates a reusable image button."""
         button = ImageButton(source=source, size_hint=(None, None), size=(150, 150))
@@ -403,3 +429,60 @@ class BottomNavScreen(MDScreen):
         """Open the intro screen."""
         app = MDApp.get_running_app()
         app.openVowelChallenges()
+
+    def on_music_slider_value_change(self, instance, value):
+        App.get_running_app().set_music_volume(value / 100.0)  # Assuming slider range is 0–100
+
+    def on_sfx_slider_value_change(self, instance, value):
+        App.get_running_app().set_sfx_volume(value / 100.0)
+
+    def confirm_reset_progress(self, *args):
+        """Ask the user to confirm before resetting progress."""
+        self.dialog = MDDialog(
+            title="Confirm Reset",
+            text="Are you sure you want to reset your progress? This action cannot be undone.",
+            buttons=[
+                MDRaisedButton(text="Cancel", on_press=self.dismiss_dialog),
+                MDRaisedButton(text="Reset", on_press=self.reset_progress)
+            ]
+        )
+        self.dialog.open()
+
+    def dismiss_dialog(self, *args):
+        self.dialog.dismiss()
+
+    def reset_progress(self, *args):
+        """Reset the account progress and save."""
+        self.dialog.dismiss()
+        try:
+            account = self.load_account_data()
+            if account:
+                # Reset progress flags
+                account.introStatus = False
+                account.aStatus = False
+                account.eStatus = False
+                account.iStatus = False
+                account.oStatus = False
+                account.uStatus = False
+
+                account.achievementOne = False
+                account.achievementTwo = False
+                account.achievementThree = False
+                account.achievementFour = False
+
+                account.vowelScreen = False
+                account.easyChallenge = False
+                account.intermediateChallenge = False
+                account.hardChallenge = False
+
+                # Save back to file
+                with open('account_data.pkl', 'wb') as file:
+                    pickle.dump(account, file)
+
+                print("Progress reset successfully.")
+
+                # Refresh UI to reflect changes
+                self.refresh_home_tab()
+                # If profile tab is visible, you may want to refresh it too (depends on your app flow)
+        except Exception as e:
+            print(f"Failed to reset progress: {e}")

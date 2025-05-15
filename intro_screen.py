@@ -1,19 +1,21 @@
 import pickle
+
 import cv2
 import mediapipe as mp
 import numpy as np
 from kivy.clock import Clock
+from kivy.core.audio import SoundLoader
 from kivy.graphics.texture import Texture
+from kivy.metrics import dp
 from kivy.uix.image import Image
+from kivymd.app import MDApp
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.label import MDLabel
-from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.progressbar import MDProgressBar
-from kivymd.uix.scrollview import MDScrollView
-from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screen import MDScreen
-from kivy.metrics import dp
-from kivymd.app import MDApp
+from kivymd.uix.scrollview import MDScrollView
 
 # --- Load model and MediaPipe once ---
 model_dict = pickle.load(open('./model.p', 'rb'))
@@ -28,6 +30,11 @@ hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
 class IntroScreen(MDScreen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Load button SFX
+        self.success_sfx = SoundLoader.load('assets/sounds/levelwin2.mp3')
+        self.click_sfx = SoundLoader.load('assets/sounds/select2.mp3')
+        self.achievement_sfx = SoundLoader.load("assets/sounds/achievementunlock2.mp3")
 
         self.dialog_shown = False
         self.capture = None
@@ -262,30 +269,68 @@ class IntroScreen(MDScreen):
 
     def show_success_dialog(self):
         if not self.dialog_shown:
-            prediction_text = "You have successfully done the letter!"
-            if not hasattr(self, 'dialog') or not self.dialog:
-                self.dialog = MDDialog(
-                    title="🎉 Congratulations! 🎉",
-                    text="You did an amazing job!",
-                    radius=[20, 7, 20, 7],
-                    buttons=[
-                        MDRaisedButton(
-                            text="Thank you!",
-                            on_release=lambda x: (self.dialog.dismiss(), self.go_back())
-                        )
-                    ],
-                )
+            # 🔊 Play success sound
+            if hasattr(self, 'success_sfx') and self.success_sfx:
+                self.success_sfx.stop()
+                self.success_sfx.play()
 
+            self.dialog_shown = True
+
+            # ✅ Load account data
             with open("account_data.pkl", "rb") as file:
                 account = pickle.load(file)
 
+            # 🚩 Check if this is the first completion
+            show_achievement = not getattr(account, "introStatus", False)
+
+            # ✅ Mark introStatus as complete
             account.introStatus = True
 
             with open("account_data.pkl", "wb") as file:
                 pickle.dump(account, file)
 
-            print("thumbs up korek")
+            # ⛳ Define the button behavior
+            def on_lets_go(instance_btn):
+                self.dialog.dismiss()
+                if show_achievement:
+                    self.show_achievement_popup()
+                else:
+                    self.go_back()
+
+            # 👋 Build the success dialog
+            self.dialog = MDDialog(
+                title="Welcome to SignItUp!",
+                text="You're all set to begin your learning journey. Let's make learning fun!",
+                radius=[20, 7, 20, 7],
+                buttons=[
+                    MDRaisedButton(
+                        text="Let's go!",
+                        on_release=on_lets_go
+                    )
+                ],
+            )
+
             self.dialog.open()
+
+    def show_achievement_popup(self):
+        # 🔊 Play achievement sound effect
+        if hasattr(self, 'achievement_sfx') and self.achievement_sfx:
+            self.achievement_sfx.stop()
+            self.achievement_sfx.play()
+
+        # 🎖️ Build and show achievement dialog
+        achievement_dialog = MDDialog(
+            title="Achievement Unlocked!",
+            text="You've completed the introduction! Keep going!",
+            radius=[20, 7, 20, 7],
+            buttons=[
+                MDRaisedButton(
+                    text="Awesome!",
+                    on_release=lambda x: (achievement_dialog.dismiss(), self.go_back())
+                )
+            ],
+        )
+        achievement_dialog.open()
 
     def go_back(self, *args):
         app = MDApp.get_running_app()

@@ -3,6 +3,8 @@ import sys
 
 from challenges_screen import ChallengesScreen
 from vowels_easy_screen import *
+from kivy.core.audio import SoundLoader
+
 
 # List of required packages
 required_packages = ['kivy', 'kivymd', 'mediapipe', 'opencv-python', 'numpy', 'scikit-learn', 'cycler', 'matplotlib']
@@ -29,6 +31,16 @@ from register import RegisterScreen
 
 #main--------------------------------------------------------------------
 class SignItUp(MDApp):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._button_sound_callback = self._make_click_callback()
+
+    def _make_click_callback(self):
+        def callback(instance):
+            self.play_click_sound()
+
+        return callback
+
     def build(self):
 
         ##button loads
@@ -85,25 +97,47 @@ class SignItUp(MDApp):
         self.sm.add_widget(self.letter_u_screen)
 
         self.sm.current = "bottom_nav"
+        self.sm.bind(current=self.on_screen_change)
+        self.bind_sfx_to_all_buttons(self.sm.get_screen("bottom_nav"))
+
+        # Load button SFX & BGM
+        self.click_sfx = SoundLoader.load('assets/sounds/select2.mp3')
+        self.music_volume = 0.5
+        self.sfx_volume = 0.5
+
+        if self.click_sfx:
+            self.click_sfx.volume = self.sfx_volume
+
+        self.idle_music = SoundLoader.load('assets/sounds/idlemusic1.mp3')
+        if self.idle_music:
+            self.idle_music.loop = True
+            self.idle_music.volume = self.music_volume
+            self.idle_music.play()
+
         return self.sm
 
     def openVowelChallenges (self):
         self.sm.current = 'challenges_menu'
+        self.stop_idle_music()
 
     def openVowelsMenu (self):
      print('vowels menu')
+     self.stop_idle_music()
      self.sm.current = 'vowels_menu'
 
-    def openMain (self):
-     print('open menu')
-     self.sm.current = 'bottom_nav'
+    def openMain(self):
+        print('open menu')
+        self.sm.current = 'bottom_nav'
+        if self.idle_music:
+            self.idle_music.play()
 
     def openChallenges (self):
-        print('shallenge time')
+        print('challenge time')
         self.sm.current = 'challenges_menu'
 
     def openIntro (self):
      print('intro')
+     self.stop_idle_music()
      self.sm.current = 'intro'
 
     def openLetterA (self):
@@ -135,6 +169,45 @@ class SignItUp(MDApp):
 
         if len(text) > 1 or not text.isalpha():
             instance.text = text[:1] if text[:1].isalpha() else ''
+
+    def play_click_sound(self):
+        if self.click_sfx:
+            self.click_sfx.volume = self.sfx_volume
+            self.click_sfx.play()
+
+    def stop_idle_music(self):
+        if hasattr(self, 'idle_music') and self.idle_music:
+            self.idle_music.stop()
+
+    def bind_sfx_to_all_buttons(self, root_widget):
+        for child in root_widget.walk():
+            if hasattr(child, 'on_press') and hasattr(child, 'bind'):
+                child.bind(on_press=self._button_sound_callback)
+
+    def unbind_sfx_from_all_buttons(self, root_widget):
+        for child in root_widget.walk():
+            if hasattr(child, 'on_press') and hasattr(child, 'unbind'):
+                child.unbind(on_press=self._button_sound_callback)
+
+    def on_screen_change(self, instance, value):
+        # Unbind from all screens first (clean slate)
+        for screen in self.sm.screens:
+            self.unbind_sfx_from_all_buttons(screen)
+
+        # Bind only on the current screen if not 'register'
+        if value != 'register':
+            current_screen = self.sm.get_screen(value)
+            self.bind_sfx_to_all_buttons(current_screen)
+
+    def set_music_volume(self, volume):
+        self.music_volume = volume
+        if hasattr(self, 'idle_music') and self.idle_music:
+            self.idle_music.volume = volume
+
+    def set_sfx_volume(self, volume):
+        self.sfx_volume = volume
+        if self.click_sfx:
+            self.click_sfx.volume = volume
 
 #main-run---------------------------------------------------------
 if __name__ == '__main__':
