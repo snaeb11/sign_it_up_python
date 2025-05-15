@@ -1,6 +1,7 @@
 import subprocess
 import sys
 
+from challenges_screen import ChallengesScreen
 
 # List of required packages
 required_packages = ['kivy', 'kivymd', 'mediapipe', 'opencv-python', 'numpy', 'scikit-learn', 'cycler', 'matplotlib']
@@ -15,7 +16,6 @@ for package in required_packages:
 
 print("✅ All required packages are installed.")
 
-from kivymd.app import MDApp
 from kivy.lang import Builder
 from helpers import *
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -24,7 +24,6 @@ from intro_screen import IntroScreen
 from vowels_menu_screen import VowelMenuScreen
 from navigation_screen import BottomNavScreen
 from register import RegisterScreen
-from welcome_screen import WelcomeScreen
 
 
 #main--------------------------------------------------------------------
@@ -47,8 +46,7 @@ class SignItUp(MDApp):
         self.bottom_nav_screen = BottomNavScreen(name='bottom_nav')
         self.vowels_menu_screen = VowelMenuScreen(name='vowels_menu')
         self.intro_screen = IntroScreen(name='intro')
-
-        ##bullied class
+        self.challenges_screen = ChallengesScreen(name='challenges_menu')
 
         #vowels screen
         self.letter_a_screen = LetterAScreen(name='a_screen')
@@ -62,7 +60,7 @@ class SignItUp(MDApp):
         self.sm.add_widget(self.bottom_nav_screen)
         self.sm.add_widget(self.vowels_menu_screen)
         self.sm.add_widget(self.intro_screen)
-
+        self.sm.add_widget(self.challenges_screen)
         #bullied class
 
         #
@@ -83,6 +81,9 @@ class SignItUp(MDApp):
      print('open menu')
      self.sm.current = 'bottom_nav'
 
+    def openChallenges (self):
+        print('shallenge time')
+        self.sm.current = 'challenges_menu'
 
     def openIntro (self):
      print('intro')

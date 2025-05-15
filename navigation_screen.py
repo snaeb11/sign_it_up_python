@@ -397,4 +397,4 @@ class BottomNavScreen(MDScreen):
     def open_intro(self, *args):
         """Open the intro screen."""
         app = MDApp.get_running_app()
-        app.openIntro()
+        app.openChallenges()

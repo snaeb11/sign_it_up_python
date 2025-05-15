@@ -58,7 +58,7 @@ class LetterAScreen(MDScreen):
         )
 
         self.gif_image = AsyncImage(
-            source='assets/gif/GIFLetterA.gif',
+            source='assets/hands/letterA.PNG',
             allow_stretch=True,
             size_hint=(None, None),
             width=200,
@@ -251,7 +251,7 @@ class LetterEScreen(MDScreen):
 
 
         self.gif_image = AsyncImage(
-            source='assets/gif/GIFLetterE.gif',
+            source='assets/hands/letterE.PNG',
             allow_stretch=True,
             size_hint=(None, None),
             width=200,
@@ -436,7 +436,7 @@ class LetterIScreen(MDScreen):
         )
 
         self.gif_image = AsyncImage(
-            source='assets/gif/GIFLetterI.gif',
+            source='assets/hands/letterI.PNG',
             allow_stretch=True,
             size_hint=(None, None),
             width=200,
@@ -622,7 +622,7 @@ class LetterOScreen(MDScreen):
         )
 
         self.gif_image = AsyncImage(
-            source='assets/gif/GIFLetterO.gif',
+            source='assets/hands/letterO.PNG',
             allow_stretch=True,
             size_hint=(None, None),
             width=200,
@@ -805,7 +805,7 @@ class LetterUScreen(MDScreen):
         )
 
         self.gif_image = AsyncImage(
-            source='assets/gif/GIFLetterU.gif',
+            source='assets/hands/letterU.PNG',
             allow_stretch=True,
             size_hint=(None, None),
             width=200,
