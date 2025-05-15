@@ -127,7 +127,7 @@ class BottomNavScreen(MDScreen):
         # Buttons
         vowels_button = self.create_image_button('assets/vowels.png', self.open_vowels_menu)
         intro_button = self.create_image_button('assets/intro.png', self.open_intro)
-        vowels_challenge_button = self.create_image_button('assets/vowelsChallengeClick.png', self.open_intro)
+        vowels_challenge_button = self.create_image_button('assets/vowelsChallengeClick.png', self.open_vowels_challenge)
 
 
         # Button row centered horizontally
@@ -186,12 +186,12 @@ class BottomNavScreen(MDScreen):
 
         ##vowels chalneghes butotn
         if not account.vowelScreen:
-            vowels_challenge_button = self.create_image_button('assets/vowelsChallengeLocked.png', self.open_intro)
+            vowels_challenge_button = self.create_image_button('assets/vowelsChallengeLocked.png', self.open_vowels_challenge)
             vowels_challenge_button.disabled = True
         elif account.easyChallenge and account.intermediateChallenge and account.hardChallenge:
-            vowels_challenge_button = self.create_image_button('assets/vowelsChallengeCheck.png', self.open_intro)
+            vowels_challenge_button = self.create_image_button('assets/vowelsChallengeCheck.png', self.open_vowels_challenge)
         else:
-            vowels_challenge_button = self.create_image_button('assets/vowelsChallengeClick.png', self.open_intro)
+            vowels_challenge_button = self.create_image_button('assets/vowelsChallengeClick.png', self.open_vowels_challenge)
 
         self.home_layout.add_widget(intro_button)
         self.home_layout.add_widget(vowels_button)
@@ -397,4 +397,9 @@ class BottomNavScreen(MDScreen):
     def open_intro(self, *args):
         """Open the intro screen."""
         app = MDApp.get_running_app()
-        app.openChallenges()
+        app.openIntro()
+
+    def open_vowels_challenge(self, *args):
+        """Open the intro screen."""
+        app = MDApp.get_running_app()
+        app.openVowelChallenges()

@@ -128,7 +128,7 @@ class ChallengesScreen(MDScreen):
                 )
 
             # intermediate button
-            if not account.intermediateChallenge:
+            if not account.easyChallenge:
                 intermediateBtn = ImageButton(
                     source=f'assets/vowelsInterLocked.png',
                     size_hint=(None, None),
@@ -149,7 +149,7 @@ class ChallengesScreen(MDScreen):
                 )
 
             # hard button
-            if not account.hardChallenge:
+            if not account.intermediateChallenge:
                 hardBtn = ImageButton(
                     source=f'assets/vowelsHardLocked.png',
                     size_hint=(None, None),

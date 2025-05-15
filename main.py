@@ -86,7 +86,10 @@ class SignItUp(MDApp):
 
         self.sm.current = "bottom_nav"
         return self.sm
-    
+
+    def openVowelChallenges (self):
+        self.sm.current = 'challenges_menu'
+
     def openVowelsMenu (self):
      print('vowels menu')
      self.sm.current = 'vowels_menu'
