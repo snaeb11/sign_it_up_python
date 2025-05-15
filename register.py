@@ -42,6 +42,10 @@ class Account:
         self.intermediateChallenge = False
         self.hardChallenge = False
 
+        # User Preference Settings
+        self.music_volume = 0.5
+        self.sfx_volume = 0.5
+
 
 class RegisterScreen(MDScreen):
     def __init__(self, *args, **kwargs):
