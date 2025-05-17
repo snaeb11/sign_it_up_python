@@ -90,6 +90,8 @@ class FirstScreen(MDScreen):
 
             def dismiss_wrong_dialog(*args):
                 wrong_dialog.dismiss()
+                app = MDApp.get_running_app()
+                app.sm.current = 'challenges_menu'
 
             wrong_dialog = MDDialog(
                 title="❌ Incorrect",
@@ -168,6 +170,8 @@ class SecondScreen(MDScreen):
 
             def dismiss_wrong_dialog(*args):
                 wrong_dialog.dismiss()
+                app = MDApp.get_running_app()
+                app.sm.current = 'challenges_menu'
 
             wrong_dialog = MDDialog(
                 title="❌ Incorrect",
@@ -246,6 +250,8 @@ class ThirdScreen(MDScreen):
 
             def dismiss_wrong_dialog(*args):
                 wrong_dialog.dismiss()
+                app = MDApp.get_running_app()
+                app.sm.current = 'challenges_menu'
 
             wrong_dialog = MDDialog(
                 title="❌ Incorrect",
@@ -324,6 +330,8 @@ class FourthScreen(MDScreen):
 
             def dismiss_wrong_dialog(*args):
                 wrong_dialog.dismiss()
+                app = MDApp.get_running_app()
+                app.sm.current = 'challenges_menu'
 
             wrong_dialog = MDDialog(
                 title="❌ Incorrect",
