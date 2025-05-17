@@ -1,6 +1,7 @@
 import os
 import pickle
 
+from kivy.app import App
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
@@ -14,8 +15,6 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.progressbar import MDProgressBar
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.slider import MDSlider
-from kivy.app import App
-
 
 from register import Account
 
@@ -380,34 +379,116 @@ class BottomNavScreen(MDScreen):
 
     def create_settings_ui(self):
         from kivy.metrics import dp
+        app = App.get_running_app()
 
-        # Outer vertical layout for spacing
-        layout = MDBoxLayout(orientation='vertical', padding=dp(20), spacing=dp(30), size_hint=(1, 1))
+        # Get current volume settings
+        current_music = app.music_volume * 100
+        current_sfx = app.sfx_volume * 100
 
-        # Main Music Volume
-        layout.add_widget(MDLabel(text="Main Music Volume", font_style="H6", size_hint_y=None, height=30))
-        self.main_music_slider = MDSlider(min=0, max=100, value=50)
+        # Main container
+        main_layout = MDBoxLayout(
+            orientation='vertical',
+            spacing=dp(0),
+            padding=[dp(20), dp(20), dp(20), dp(20)],
+            size_hint=(0.85, None),
+            height=dp(340),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+        )
+
+        # Title
+        main_layout.add_widget(MDLabel(
+            text="Settings",
+            font_style="H4",
+            halign="center",
+            size_hint_y=None,
+            height=dp(40),
+            padding=[0, 0, 0, dp(10)]
+        ))
+
+        # spacer
+        main_layout.add_widget(Widget(size_hint_y=None, height=dp(20)))
+
+        # Volume controls container
+        controls_layout = MDBoxLayout(
+            orientation='vertical',
+            spacing=dp(15),
+            size_hint=(1, None),
+            height=dp(180)
+        )
+
+        # Music Volume Section
+        music_box = MDBoxLayout(
+            orientation='vertical',
+            spacing=dp(2),
+            size_hint=(1, None),
+            height=dp(90)
+        )
+
+        music_box.add_widget(MDLabel(
+            text="Music Volume",
+            font_style="H5",
+            halign="center",
+            size_hint_y=None,
+            height=dp(30)
+        ))
+
+        self.main_music_slider = MDSlider(
+            min=0,
+            max=100,
+            value=current_music,
+            size_hint=(0.9, None),
+            height=dp(40),
+            pos_hint={'center_x': 0.5}
+        )
         self.main_music_slider.bind(value=self.on_music_slider_value_change)
-        layout.add_widget(self.main_music_slider)
+        music_box.add_widget(self.main_music_slider)
+        controls_layout.add_widget(music_box)
 
-        # SFX Volume
-        layout.add_widget(MDLabel(text="SFX Volume", font_style="H6", size_hint_y=None, height=30))
-        self.sfx_slider = MDSlider(min=0, max=100, value=50)
+        # SFX Volume Section
+        sfx_box = MDBoxLayout(
+            orientation='vertical',
+            spacing=dp(5),
+            size_hint=(1, None),
+            height=dp(80)
+        )
+
+        sfx_box.add_widget(MDLabel(
+            text="Sound Effects Volume",
+            font_style="H5",
+            halign="center",
+            size_hint_y=None,
+            height=dp(30)
+        ))
+
+        self.sfx_slider = MDSlider(
+            min=0,
+            max=100,
+            value=current_sfx,
+            size_hint=(0.9, None),
+            height=dp(40),
+            pos_hint={'center_x': 0.5}
+        )
         self.sfx_slider.bind(value=self.on_sfx_slider_value_change)
-        layout.add_widget(self.sfx_slider)
+        sfx_box.add_widget(self.sfx_slider)
+        controls_layout.add_widget(sfx_box)
 
-        # Reset Progress Button
+        main_layout.add_widget(controls_layout)
+
+        # Add space between controls and reset button
+        main_layout.add_widget(Widget(size_hint_y=None, height=dp(40)))
+
+        # Reset button
         reset_button = MDRaisedButton(
             text="Reset Progress",
             md_bg_color=(1, 0, 0, 1),
             size_hint=(None, None),
-            size=(dp(150), dp(50)),
+            size=(dp(200), dp(45)),
             pos_hint={'center_x': 0.5}
         )
         reset_button.bind(on_press=self.confirm_reset_progress)
-        layout.add_widget(reset_button)
+        main_layout.add_widget(reset_button)
 
-        return layout
+        return main_layout
 
     def create_image_button(self, source, on_press_callback):
         """Creates a reusable image button."""
@@ -431,10 +512,14 @@ class BottomNavScreen(MDScreen):
         app.openVowelChallenges()
 
     def on_music_slider_value_change(self, instance, value):
-        App.get_running_app().set_music_volume(value / 100.0)  # Assuming slider range is 0–100
+        app = App.get_running_app()
+        volume = value / 100.0  # Convert back to 0.0-1.0 range
+        app.set_music_volume(volume)
 
     def on_sfx_slider_value_change(self, instance, value):
-        App.get_running_app().set_sfx_volume(value / 100.0)
+        app = App.get_running_app()
+        volume = value / 100.0
+        app.set_sfx_volume(volume)
 
     def confirm_reset_progress(self, *args):
         """Ask the user to confirm before resetting progress."""
@@ -483,6 +568,6 @@ class BottomNavScreen(MDScreen):
 
                 # Refresh UI to reflect changes
                 self.refresh_home_tab()
-                # If profile tab is visible, you may want to refresh it too (depends on your app flow)
+
         except Exception as e:
             print(f"Failed to reset progress: {e}")

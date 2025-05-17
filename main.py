@@ -1,6 +1,7 @@
 import subprocess
 import sys
 
+from pathlib import Path
 from challenges_screen import ChallengesScreen
 from vowels_easy_screen import *
 from kivy.core.audio import SoundLoader
@@ -34,6 +35,46 @@ class SignItUp(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._button_sound_callback = self._make_click_callback()
+        # Initialize with defaults (will be overwritten by load)
+        self.music_volume = 0.5
+        self.sfx_volume = 0.5
+        self.load_volume_settings()  # Load saved settings immediately
+
+        # Initialize audio objects as None
+        self.click_sfx = None
+        self.idle_music = None
+
+    def load_volume_settings(self):
+        """Load and immediately apply volume settings"""
+        try:
+            if os.path.exists("account_data.pkl"):
+                with open("account_data.pkl", "rb") as f:
+                    account = pickle.load(f)
+
+                self.music_volume = getattr(account, 'music_volume', 0.5)
+                self.sfx_volume = getattr(account, 'sfx_volume', 0.5)
+
+                # Debug print
+                print(f"Loaded volumes - Music: {self.music_volume}, SFX: {self.sfx_volume}")
+
+        except Exception as e:
+            print(f"Error loading volume settings: {e}")
+
+    def save_volume_settings(self):
+        """Save current volume settings to account data"""
+        try:
+            if os.path.exists("account_data.pkl"):
+                with open("account_data.pkl", "rb") as f:
+                    account = pickle.load(f)
+
+                account.music_volume = self.music_volume
+                account.sfx_volume = self.sfx_volume
+
+                with open("account_data.pkl", "wb") as f:
+                    pickle.dump(account, f)
+
+        except Exception as e:
+            print(f"Error saving volume settings: {e}")
 
     def _make_click_callback(self):
         def callback(instance):
@@ -100,18 +141,15 @@ class SignItUp(MDApp):
         self.sm.bind(current=self.on_screen_change)
         self.bind_sfx_to_all_buttons(self.sm.get_screen("bottom_nav"))
 
-        # Load button SFX & BGM
+        # Load button SFX & BGM with correct volumes
         self.click_sfx = SoundLoader.load('assets/sounds/select2.mp3')
-        self.music_volume = 0.5
-        self.sfx_volume = 0.5
-
         if self.click_sfx:
-            self.click_sfx.volume = self.sfx_volume
+            self.click_sfx.volume = self.sfx_volume  # Apply loaded volume
 
         self.idle_music = SoundLoader.load('assets/sounds/idlemusic1.mp3')
         if self.idle_music:
             self.idle_music.loop = True
-            self.idle_music.volume = self.music_volume
+            self.idle_music.volume = self.music_volume  # Apply loaded volume
             self.idle_music.play()
 
         return self.sm
@@ -200,14 +238,18 @@ class SignItUp(MDApp):
             self.bind_sfx_to_all_buttons(current_screen)
 
     def set_music_volume(self, volume):
+        """Set music volume and ensure it's applied immediately"""
         self.music_volume = volume
         if hasattr(self, 'idle_music') and self.idle_music:
             self.idle_music.volume = volume
+        self.save_volume_settings()
 
     def set_sfx_volume(self, volume):
+        """Set SFX volume and ensure it's applied immediately"""
         self.sfx_volume = volume
-        if self.click_sfx:
+        if hasattr(self, 'click_sfx') and self.click_sfx:
             self.click_sfx.volume = volume
+        self.save_volume_settings()
 
 #main-run---------------------------------------------------------
 if __name__ == '__main__':

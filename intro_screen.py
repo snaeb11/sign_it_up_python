@@ -31,10 +31,19 @@ class IntroScreen(MDScreen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Load button SFX
+        # Load button SFX with initial volume
+        self.sfx_volume = 0.5  # Default volume, will be updated from account data
         self.success_sfx = SoundLoader.load('assets/sounds/levelwin2.mp3')
         self.click_sfx = SoundLoader.load('assets/sounds/select2.mp3')
         self.achievement_sfx = SoundLoader.load("assets/sounds/achievementunlock2.mp3")
+
+        # Set initial volumes
+        if self.success_sfx:
+            self.success_sfx.volume = self.sfx_volume
+        if self.click_sfx:
+            self.click_sfx.volume = self.sfx_volume
+        if self.achievement_sfx:
+            self.achievement_sfx.volume = self.sfx_volume
 
         self.dialog_shown = False
         self.capture = None
@@ -234,7 +243,7 @@ class IntroScreen(MDScreen):
                     idx = np.argmax(proba)
 
                     if idx == 5 and confidence >= 0.7:
-                        prediction_text = "OKKKKKKKKKKKKKKK"
+                        prediction_text = "Detected! Keep it up!"
                         if not self.gesture_timer_event:
                             self.gesture_hold_time = 0
                             self.gesture_timer_event = Clock.schedule_interval(self.update_gesture_timer, 0.1)
@@ -269,8 +278,13 @@ class IntroScreen(MDScreen):
 
     def show_success_dialog(self):
         if not self.dialog_shown:
-            # 🔊 Play success sound
+            # Update SFX volume from app settings
+            app = MDApp.get_running_app()
+            self.sfx_volume = app.sfx_volume
+
+            # Play success sound with current volume
             if hasattr(self, 'success_sfx') and self.success_sfx:
+                self.success_sfx.volume = self.sfx_volume
                 self.success_sfx.stop()
                 self.success_sfx.play()
 
@@ -313,8 +327,13 @@ class IntroScreen(MDScreen):
             self.dialog.open()
 
     def show_achievement_popup(self):
-        # 🔊 Play achievement sound effect
+        # Update SFX volume from app settings
+        app = MDApp.get_running_app()
+        self.sfx_volume = app.sfx_volume
+
+        # Play achievement sound with current volume
         if hasattr(self, 'achievement_sfx') and self.achievement_sfx:
+            self.achievement_sfx.volume = self.sfx_volume
             self.achievement_sfx.stop()
             self.achievement_sfx.play()
 
