@@ -113,6 +113,9 @@ class FirstScreen(MDScreen):
 
     def submit_first(self, obj):
         answer = self.answerInput.text.strip()
+
+        self.answerInput.text = ''
+
         if answer.lower() == 'e':
             print("korek")
 
@@ -193,6 +196,9 @@ class SecondScreen(MDScreen):
 
     def submit_first(self, obj):
         answer = self.answerInput.text.strip()
+
+        self.answerInput.text = ''
+
         if answer.lower() == 'u':
             print("korek")
 
@@ -273,6 +279,9 @@ class ThirdScreen(MDScreen):
 
     def submit_first(self, obj):
         answer = self.answerInput.text.strip()
+
+        self.answerInput.text = ''
+
         if answer.lower() == 'a':
             print("korek")
 
@@ -353,6 +362,9 @@ class FourthScreen(MDScreen):
 
     def submit_first(self, obj):
         answer = self.answerInput.text.strip()
+
+        self.answerInput.text = ''
+
         if answer.lower() == 'i':
             print("korek")
 
@@ -433,6 +445,9 @@ class FifthScreen(MDScreen):
 
     def submit_first(self, obj):
         answer = self.answerInput.text.strip()
+
+        self.answerInput.text = ''
+
         if answer.lower() == 'o':
             print("korek")
 

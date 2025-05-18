@@ -25,17 +25,9 @@ class ChallengesScreen(MDScreen):
         app = MDApp.get_running_app()
         app.openVowelIntermediate()
 
-    def open_letter_i(self, *args):
+    def open_vowel_hard(self, *args):
         app = MDApp.get_running_app()
-        app.openLetterI()
-
-    def open_letter_o(self, *args):
-        app = MDApp.get_running_app()
-        app.openLetterO()
-
-    def open_letter_u(self, *args):
-        app = MDApp.get_running_app()
-        app.openLetterU()
+        app.openVowelHard()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -172,7 +164,7 @@ class ChallengesScreen(MDScreen):
 
             easyBtn.bind(on_press=self.open_vowel_easy)
             intermediateBtn.bind(on_press=self.open_vowel_intermediate)
-            hardBtn.bind(on_press=self.open_letter_i)
+            hardBtn.bind(on_press=self.open_vowel_hard)
 
             self.layout.add_widget(easyBtn)
             self.layout.add_widget(intermediateBtn)

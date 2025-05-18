@@ -6,6 +6,7 @@ from challenges_screen import ChallengesScreen
 from vowels_easy_screen import *
 from kivy.core.audio import SoundLoader
 
+from vowels_hard_screen import *
 from vowels_intermediate_screen import *
 
 # List of required packages
@@ -120,6 +121,15 @@ class SignItUp(MDApp):
         self.vowels_intermediate_fourth_screen = FourthScreenVowelIntermediate(name='vowel_fourth_intermediate_screen')
         self.vowels_intermediate_fifth_screen = FifthScreenVowelIntermediate(name='vowel_fifth_intermediate_screen')
 
+        ## vowels hard challenges
+        self.vowels_hard_screen = VowelsHardChallengeScreen(name='vowels_hard')
+        self.vowels_hard_instruction = VowelsHardInstructionScreen(name='vowels_hard_instruction')
+        self.vowels_hard_first_screen = FirstScreenVowelHard(name='vowel_first_hard_screen')
+        self.vowels_hard_second_screen = SecondScreenVowelHard(name='vowel_second_hard_screen')
+        self.vowels_hard_third_screen = ThirdScreenVowelHard(name='vowel_third_hard_screen')
+        self.vowels_hard_fourth_screen = FourthScreenVowelHard(name='vowel_fourth_hard_screen')
+        self.vowels_hard_fifth_screen = FifthScreenVowelHard(name='vowel_fifth_hard_screen')
+
         #vowels screen
         self.letter_a_screen = LetterAScreen(name='a_screen')
         self.letter_e_screen = LetterEScreen(name='e_screen')
@@ -151,6 +161,14 @@ class SignItUp(MDApp):
         self.sm.add_widget(self.vowels_intermediate_fourth_screen)
         self.sm.add_widget(self.vowels_intermediate_fifth_screen)
 
+        ### vowel hard chal
+        self.sm.add_widget(self.vowels_hard_screen)
+        self.sm.add_widget(self.vowels_hard_instruction)
+        self.sm.add_widget(self.vowels_hard_first_screen)
+        self.sm.add_widget(self.vowels_hard_second_screen)
+        self.sm.add_widget(self.vowels_hard_third_screen)
+        self.sm.add_widget(self.vowels_hard_fourth_screen)
+        self.sm.add_widget(self.vowels_hard_fifth_screen)
         #
         self.sm.add_widget(self.letter_a_screen)
         self.sm.add_widget(self.letter_e_screen)
@@ -226,6 +244,10 @@ class SignItUp(MDApp):
     def openVowelIntermediate (self):
      print('vowel intermediate')
      self.sm.current = 'vowels_intermediate'
+
+    def openVowelHard (self):
+     print('vowel hard')
+     self.sm.current = 'vowels_hard'
 
     def validate_vowel_input(self, instance):
         text = instance.text
