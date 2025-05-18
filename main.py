@@ -115,6 +115,10 @@ class SignItUp(MDApp):
         self.vowels_intermediate_screen = VowelsIntermediateChallengeScreen(name='vowels_intermediate')
         self.vowels_intermediate_instruction = VowelsIntermediateInstructionScreen(name='vowels_intermediate_instruction')
         self.vowels_intermediate_first_screen = FirstScreenVowelIntermediate(name='vowel_first_intermediate_screen')
+        self.vowels_intermediate_second_screen = SecondScreenVowelIntermediate(name='vowel_second_intermediate_screen')
+        self.vowels_intermediate_third_screen = ThirdScreenVowelIntermediate(name='vowel_third_intermediate_screen')
+        self.vowels_intermediate_fourth_screen = FourthScreenVowelIntermediate(name='vowel_fourth_intermediate_screen')
+        self.vowels_intermediate_fifth_screen = FifthScreenVowelIntermediate(name='vowel_fifth_intermediate_screen')
 
         #vowels screen
         self.letter_a_screen = LetterAScreen(name='a_screen')
@@ -142,6 +146,10 @@ class SignItUp(MDApp):
         self.sm.add_widget(self.vowels_intermediate_screen)
         self.sm.add_widget(self.vowels_intermediate_instruction)
         self.sm.add_widget(self.vowels_intermediate_first_screen)
+        self.sm.add_widget(self.vowels_intermediate_second_screen)
+        self.sm.add_widget(self.vowels_intermediate_third_screen)
+        self.sm.add_widget(self.vowels_intermediate_fourth_screen)
+        self.sm.add_widget(self.vowels_intermediate_fifth_screen)
 
         #
         self.sm.add_widget(self.letter_a_screen)
