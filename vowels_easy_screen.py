@@ -5,6 +5,7 @@ from kivy.uix.image import Image, AsyncImage
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.dialog import MDDialog
+from kivymd.uix.label import MDLabel
 from kivymd.uix.screen import MDScreen
 from kivy.lang import Builder
 from kivymd.app import MDApp
@@ -19,11 +20,57 @@ class VowelsEasyChallengeScreen(MDScreen):
 
     def on_enter(self, *args):
         app = MDApp.get_running_app()
-        app.sm.current = 'first_screen'
+        app.sm.current = 'vowels_easy_instruction'
 
     def go_back(self, *args):
         app = MDApp.get_running_app()
         app.openChallenges()
+
+class EasyInstructionScreen(MDScreen):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        layout = MDBoxLayout(
+            orientation='vertical',
+            padding=40,
+            spacing=20,
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+            size_hint=(None, None),
+            size=("500dp", "300dp")
+        )
+
+        self.title_label = MDLabel(
+            text="Easy Challenge",
+            halign="center",
+            theme_text_color="Primary",
+            font_style="H4",  # You can change to "H3" or "H5" depending on size preference
+            size_hint_y=None,
+            height="50dp"
+        )
+
+        self.instruction_label = MDLabel(
+            text="In order to complete this challenge, you must enter the correct letter of the displayed hand gesture. This must be done to all the letters — one wrong answer and all is lost.",
+            halign="center",
+            theme_text_color="Primary",
+            size_hint_y=None,
+            height="120dp",
+        )
+
+        self.button = MDRaisedButton(
+            text="Start Challenge",
+            pos_hint={'center_x': 0.5},
+            on_release=self.go_to_next_screen
+        )
+
+        layout.add_widget(self.title_label)
+        layout.add_widget(self.instruction_label)
+        layout.add_widget(self.button)
+
+        self.add_widget(layout)
+
+    def go_to_next_screen(*args):
+        app = MDApp.get_running_app()
+        app.sm.current = 'first_screen_easy'
 
 class FirstScreen(MDScreen):
     def __init__(self, *args, **kwargs):
@@ -72,7 +119,7 @@ class FirstScreen(MDScreen):
             def go_to_next_screen(*args):
                 correct_dialog.dismiss()
                 app = MDApp.get_running_app()
-                app.sm.current = 'second_screen'
+                app.sm.current = 'second_screen_easy'
 
             correct_dialog = MDDialog(
                 title="Correct!",
@@ -152,7 +199,7 @@ class SecondScreen(MDScreen):
             def go_to_next_screen(*args):
                 correct_dialog.dismiss()
                 app = MDApp.get_running_app()
-                app.sm.current = 'third_screen'
+                app.sm.current = 'third_screen_easy'
 
             correct_dialog = MDDialog(
                 title="Correct!",
@@ -232,7 +279,7 @@ class ThirdScreen(MDScreen):
             def go_to_next_screen(*args):
                 correct_dialog.dismiss()
                 app = MDApp.get_running_app()
-                app.sm.current = 'fourth_screen'
+                app.sm.current = 'fourth_screen_easy'
 
             correct_dialog = MDDialog(
                 title="Correct!",
@@ -312,7 +359,7 @@ class FourthScreen(MDScreen):
             def go_to_next_screen(*args):
                 correct_dialog.dismiss()
                 app = MDApp.get_running_app()
-                app.sm.current = 'fifth_screen'
+                app.sm.current = 'fifth_screen_easy'
 
             correct_dialog = MDDialog(
                 title="Correct!",

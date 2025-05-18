@@ -6,6 +6,7 @@ from challenges_screen import ChallengesScreen
 from vowels_easy_screen import *
 from kivy.core.audio import SoundLoader
 
+from vowels_intermediate_screen import *
 
 # List of required packages
 required_packages = ['kivy', 'kivymd', 'mediapipe', 'opencv-python', 'numpy', 'scikit-learn', 'cycler', 'matplotlib']
@@ -101,13 +102,19 @@ class SignItUp(MDApp):
         self.intro_screen = IntroScreen(name='intro')
         self.challenges_screen = ChallengesScreen(name='challenges_menu')
 
-        ##vowels challenges
+        ##vowels easy challenges
         self.vowels_easy_screen = VowelsEasyChallengeScreen(name='vowels_easy')
-        self.first_screen = FirstScreen(name='first_screen')
-        self.second_screen = SecondScreen(name='second_screen')
-        self.third_screen = ThirdScreen(name='third_screen')
-        self.fourth_screen = FourthScreen(name='fourth_screen')
-        self.fifth_screen = FifthScreen(name='fifth_screen')
+        self.vowels_easy_instruction = EasyInstructionScreen(name='vowels_easy_instruction')
+        self.first_screen = FirstScreen(name='first_screen_easy')
+        self.second_screen = SecondScreen(name='second_screen_easy')
+        self.third_screen = ThirdScreen(name='third_screen_easy')
+        self.fourth_screen = FourthScreen(name='fourth_screen_easy')
+        self.fifth_screen = FifthScreen(name='fifth_screen_easy')
+
+        ##vowels intermediate challenges
+        self.vowels_intermediate_screen = VowelsIntermediateChallengeScreen(name='vowels_intermediate')
+        self.vowels_intermediate_instruction = VowelsIntermediateInstructionScreen(name='vowels_intermediate_instruction')
+        self.vowels_intermediate_first_screen = FirstScreenVowelIntermediate(name='vowel_first_intermediate_screen')
 
         #vowels screen
         self.letter_a_screen = LetterAScreen(name='a_screen')
@@ -122,13 +129,19 @@ class SignItUp(MDApp):
         self.sm.add_widget(self.intro_screen)
         self.sm.add_widget(self.challenges_screen)
 
-        ###
+        ### vowel easy chal
         self.sm.add_widget(self.vowels_easy_screen)
+        self.sm.add_widget(self.vowels_easy_instruction)
         self.sm.add_widget(self.first_screen)
         self.sm.add_widget(self.second_screen)
         self.sm.add_widget(self.third_screen)
         self.sm.add_widget(self.fourth_screen)
         self.sm.add_widget(self.fifth_screen)
+
+        ### vowel inter chal
+        self.sm.add_widget(self.vowels_intermediate_screen)
+        self.sm.add_widget(self.vowels_intermediate_instruction)
+        self.sm.add_widget(self.vowels_intermediate_first_screen)
 
         #
         self.sm.add_widget(self.letter_a_screen)
@@ -201,6 +214,10 @@ class SignItUp(MDApp):
     def openVowelEasy (self):
      print('vowel Easy')
      self.sm.current = 'vowels_easy'
+
+    def openVowelIntermediate (self):
+     print('vowel intermediate')
+     self.sm.current = 'vowels_intermediate'
 
     def validate_vowel_input(self, instance):
         text = instance.text
