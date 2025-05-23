@@ -1,23 +1,22 @@
-
-from kivymd.uix.label import MDLabel
 import pickle
 import cv2
 import numpy as np
 import mediapipe as mp
-from kivy.uix.boxlayout import BoxLayout
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.progressbar import MDProgressBar
-
-from kivymd.uix.screen import MDScreen
+from kivy.core.audio import SoundLoader
+from kivy.metrics import dp
+from kivy.uix.image import Image, AsyncImage
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton
-from kivy.uix.image import Image, AsyncImage
-from kivy.uix.label import Label
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.label import MDLabel
+from kivymd.uix.screen import MDScreen
+from kivy.lang import Builder
+from kivymd.app import MDApp
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
-from kivymd.app import MDApp
+from kivymd.uix.progressbar import MDProgressBar
 
-# Load model once
+# Load model once (moved to top level)
 model_dict = pickle.load(open('./model.p', 'rb'))
 model = model_dict['model']
 
@@ -26,6 +25,7 @@ mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
+
 
 class VowelsIntermediateChallengeScreen(MDScreen):
     def __init__(self, *args, **kwargs):
@@ -39,9 +39,14 @@ class VowelsIntermediateChallengeScreen(MDScreen):
         app = MDApp.get_running_app()
         app.openChallenges()
 
+
 class VowelsIntermediateInstructionScreen(MDScreen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.sfx = {
+            'button_click': SoundLoader.load('assets/sounds/select2.mp3')
+        }
 
         layout = MDBoxLayout(
             orientation='vertical',
@@ -56,7 +61,7 @@ class VowelsIntermediateInstructionScreen(MDScreen):
             text="Intermediate Challenge",
             halign="center",
             theme_text_color="Primary",
-            font_style="H4",  # You can change to "H3" or "H5" depending on size preference
+            font_style="H4",
             size_hint_y=None,
             height="50dp"
         )
@@ -81,99 +86,206 @@ class VowelsIntermediateInstructionScreen(MDScreen):
 
         self.add_widget(layout)
 
-    def go_to_next_screen(*args):
+    def play_sfx(self, sound_name):
+        """Helper method to play SFX with current volume"""
+        app = MDApp.get_running_app()
+        if sound_name in self.sfx and self.sfx[sound_name]:
+            self.sfx[sound_name].volume = app.sfx_volume
+            self.sfx[sound_name].play()
+
+    def go_to_next_screen(self, *args):
+        self.play_sfx('button_click')
         app = MDApp.get_running_app()
         app.sm.current = 'vowel_first_intermediate_screen'
 
-class FirstScreenVowelIntermediate(MDScreen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
+class BaseIntermediateScreen(MDScreen):
+    """Base class for all intermediate challenge screens with common functionality"""
+
+    def __init__(self, target_letter_idx, image_source, next_screen, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.target_letter_idx = target_letter_idx
+        self.image_source = image_source
+        self.next_screen = next_screen
+        self.countdown_duration = 5  # seconds
+        self.countdown = self.countdown_duration
+
+        # State variables
         self.dialog_shown = False
         self.failed = False
         self.countdown = 5
         self.countdown_event = None
-
         self.capture = None
         self.event = None
 
-        self.layout = MDBoxLayout(
+        # Sound effects
+        self.sfx = {
+            'button_click': SoundLoader.load('assets/sounds/select2.mp3'),
+            'correct_answer': SoundLoader.load('assets/sounds/correct.mp3'),
+            'wrong_answer': SoundLoader.load('assets/sounds/wrong.mp3'),
+            'countdown_tick': SoundLoader.load('assets/sounds/counter.mp3')
+        }
+
+        self.setup_ui()
+
+    def setup_ui(self):
+        """Setup the common UI elements for all intermediate screens"""
+        # Main container for vertical centering
+        main_layout = MDBoxLayout(
             orientation='vertical',
-            spacing=20,
+            padding=dp(20),
+            spacing=dp(20),
+            size_hint=(1, 1)
+        )
+
+        # Content container (centered)
+        content_layout = MDBoxLayout(
+            orientation='vertical',
+            spacing=dp(20),
             padding=[0, 0, 0, 0],
             size_hint=(None, None),
-            size=(400, 550),
+            size=(dp(400), dp(550)),  # Adjusted size to fit all elements
             pos_hint={'center_x': 0.5, 'center_y': 0.5}
         )
 
-        self.image = Image(size_hint=(None, None), width=200, height=200)
-        self.gif_image = AsyncImage(
-            source='assets/challenges/inter/igloo.jpg',
+        # Side-by-side layout for camera and example image
+        side_by_side_layout = MDBoxLayout(
+            orientation='horizontal',
+            spacing=dp(5),
+            size_hint=(1, None),
+            height=dp(200)
+        )
+
+        # Camera feed
+        self.camera_image = Image(
+            size_hint=(None, None),
+            width=dp(200),
+            height=dp(200),
+            allow_stretch=True
+        )
+
+        # Example image
+        self.example_image = AsyncImage(
+            source=self.image_source,
             allow_stretch=True,
             size_hint=(None, None),
-            width=200,
-            height=200
+            width=dp(200),
+            height=dp(200),
+            anim_delay=0.05
         )
 
-        self.label = Label(text="Detecting...", font_size=20)
-        self.countdown_label = Label(text="Time left: 5s", font_size=16)
-        self.progress_bar = MDProgressBar(value=100, max=100)
-
-        side_by_side_layout = BoxLayout(
-            orientation='horizontal',
-            spacing=5,
-            size_hint=(1, None),
-            height=200
+        # Detection label
+        self.detection_label = MDLabel(
+            text="Detecting...",
+            halign="center",
+            theme_text_color="Primary",
+            font_style="Body1"
         )
-        side_by_side_layout.add_widget(self.image)
-        side_by_side_layout.add_widget(self.gif_image)
 
-        self.layout.add_widget(side_by_side_layout)
-        self.layout.add_widget(self.label)
-        self.layout.add_widget(self.countdown_label)
-        self.layout.add_widget(self.progress_bar)
-        self.layout.add_widget(MDRaisedButton(
+        # Countdown label
+        self.countdown_label = MDLabel(
+            text=f"Time left: {self.countdown}s",
+            halign="center",
+            theme_text_color="Primary"
+        )
+
+        # Progress bar
+        self.progress_bar = MDProgressBar(
+            value=100,
+            max=100
+        )
+
+        # Back button
+        self.back_button = MDRaisedButton(
             text='Back to Menu',
             md_bg_color='gray',
+            size_hint=(None, None),
+            width=dp(200),
+            height=dp(50),
+            pos_hint={'center_x': 0.5},
             on_release=self.go_back
-        ))
+        )
 
-        self.add_widget(self.layout)
+        # Assemble the layout
+        side_by_side_layout.add_widget(self.camera_image)
+        side_by_side_layout.add_widget(self.example_image)
+
+        content_layout.add_widget(side_by_side_layout)
+        content_layout.add_widget(self.detection_label)
+        content_layout.add_widget(self.countdown_label)
+        content_layout.add_widget(self.progress_bar)
+        content_layout.add_widget(self.back_button)
+
+        # Add spacers for vertical centering
+        top_spacer = MDBoxLayout(size_hint_y=None, height=0)
+        bottom_spacer = MDBoxLayout(size_hint_y=None, height=0)
+
+        main_layout.add_widget(top_spacer)
+        main_layout.add_widget(content_layout)
+        main_layout.add_widget(bottom_spacer)
+
+        # Function to maintain centering when screen size changes
+        def update_spacers(*args):
+            screen_height = self.height
+            content_height = content_layout.height
+            remaining_space = max(0, (screen_height - content_height) / 2)
+            top_spacer.height = remaining_space
+            bottom_spacer.height = remaining_space
+
+        self.bind(height=update_spacers)
+        update_spacers()  # Initial call
+
+        self.add_widget(main_layout)
 
     def on_enter(self, *args):
+        """Start camera and timers when screen becomes active"""
+        app = MDApp.get_running_app()
         self.reset_state()
         self.capture = cv2.VideoCapture(0)
         self.event = Clock.schedule_interval(self.update, 1.0 / 30.0)
         self.countdown_event = Clock.schedule_interval(self.update_countdown, 1)
 
+        # Update sound volumes
+        for sound in self.sfx.values():
+            if sound:
+                sound.volume = app.sfx_volume
+
+    def on_leave(self, *args):
+        """Ensure all resources are cleaned up when leaving screen"""
+        self.go_back()  # This will handle all cleanup
+
     def reset_state(self):
-        # Reset flags
+        """Reset all state variables"""
         self.dialog_shown = False
         self.failed = False
         self.countdown = 5
 
-        # Reset UI
+        # Reset UI elements
         self.progress_bar.value = 100
         self.countdown_label.text = f"Time left: {self.countdown}s"
-        self.label.text = "Detecting..."
+        self.detection_label.text = "Detecting..."
 
-        # Dismiss existing dialog if open
+        # Dismiss any existing dialog
         if hasattr(self, 'dialog') and self.dialog and self.dialog.open:
             self.dialog.dismiss()
             self.dialog = None
 
-    def on_leave(self, *args):
-        if self.capture:
-            self.capture.release()
-            self.capture = None
-        if self.event:
-            Clock.unschedule(self.event)
-            self.event = None
-        if self.countdown_event:
-            Clock.unschedule(self.countdown_event)
-            self.countdown_event = None
+    def play_sfx(self, sound_name):
+        """Enhanced SFX playback with volume control and error handling"""
+        app = MDApp.get_running_app()
+        try:
+            if sound_name in self.sfx and self.sfx[sound_name]:
+                # Stop sound if already playing
+                self.sfx[sound_name].stop()
+                # Set current volume
+                self.sfx[sound_name].volume = app.sfx_volume
+                # Play sound
+                self.sfx[sound_name].play()
+        except Exception as e:
+            print(f"Error playing sound {sound_name}: {e}")
 
     def update(self, dt):
+        """Process camera frame and detect gestures"""
         if not self.capture:
             return
 
@@ -211,919 +323,278 @@ class FirstScreenVowelIntermediate(MDScreen):
                     confidence = np.max(proba)
                     idx = np.argmax(proba)
 
-                    if idx == 2 and confidence >= 0.7:
+                    if idx == self.target_letter_idx and confidence >= 0.7:
                         prediction_text = "Correct gesture detected!"
-                        if self.countdown_event:
-                            Clock.unschedule(self.countdown_event)
-                            self.countdown_event = None
-                        self.show_success_dialog()
-                        return
-                    else:
-                        prediction_text = "Gesture incorrect"
-                except:
-                    prediction_text = "Prediction error"
-
-        self.label.text = prediction_text
-
-        frame = cv2.flip(frame, 0)
-        buf = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).tobytes()
-        img_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='rgb')
-        img_texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
-        self.image.texture = img_texture
-
-    def update_countdown(self, dt):
-        if self.countdown <= 0:
-            Clock.unschedule(self.countdown_event)
-            self.countdown_event = None
-            self.progress_bar.value = 0
-            self.countdown_label.text = "Time left: 0s"
-            if not self.dialog_shown and not self.failed:
-                self.failed = True
-                self.show_failure_dialog()
-            return
-
-        self.countdown_label.text = f"Time left: {self.countdown}s"
-        self.progress_bar.value = (self.countdown / 5) * 100
-        self.countdown -= 1
-
-    def go_to_next_screen(self):
-        app = MDApp.get_running_app()
-        app.sm.current = 'vowel_second_intermediate_screen'
-
-    def show_success_dialog(self):
-        if self.dialog_shown:
-            return
-
-        self.dialog_shown = True
-        if not hasattr(self, 'dialog') or not self.dialog:
-            self.dialog = MDDialog(
-                title="🎉 Congratulations! 🎉",
-                text="You did an amazing job!",
-                radius=[20, 7, 20, 7],
-                buttons=[
-                    MDRaisedButton(
-                        text="Thank you!",
-                        on_release=lambda x: (self.dialog.dismiss(), self.go_to_next_screen())
-                    )
-                ],
-            )
-
-        self.dialog.open()
-
-    def show_failure_dialog(self):
-        self.dialog_shown = True
-        if not hasattr(self, 'dialog') or not self.dialog:
-            self.dialog = MDDialog(
-                title="❌ You Failed",
-                text="Time's up and the correct gesture wasn't detected.",
-                radius=[20, 7, 20, 7],
-                buttons=[
-                    MDRaisedButton(
-                        text="Try Again",
-                        on_release=lambda x: (self.dialog.dismiss(), self.go_back())
-                    )
-                ],
-            )
-        self.dialog.open()
-
-    def go_back(self, *args):
-        app = MDApp.get_running_app()
-        app.openChallenges()
-
-class SecondScreenVowelIntermediate(MDScreen):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.dialog_shown = False
-        self.failed = False
-        self.countdown = 5
-        self.countdown_event = None
-
-        self.capture = None
-        self.event = None
-
-        self.layout = MDBoxLayout(
-            orientation='vertical',
-            spacing=20,
-            padding=[0, 0, 0, 0],
-            size_hint=(None, None),
-            size=(400, 500),
-            pos_hint={'center_x': 0.5, 'center_y': 0.5}
-        )
-
-        self.image = Image(size_hint=(None, None), width=200, height=200)
-        self.gif_image = AsyncImage(
-            source='assets/challenges/inter/umbrella.jpg',
-            allow_stretch=True,
-            size_hint=(None, None),
-            width=200,
-            height=200,
-            anim_delay=0.05
-        )
-
-        self.label = Label(text="Detecting...", font_size=20)
-        self.countdown_label = Label(text="Time left: 5s", font_size=16)
-        self.progress_bar = MDProgressBar(value=100, max=100)
-
-        side_by_side_layout = BoxLayout(
-            orientation='horizontal',
-            spacing=5,
-            size_hint=(1, None),
-            height=200
-        )
-        side_by_side_layout.add_widget(self.image)
-        side_by_side_layout.add_widget(self.gif_image)
-
-        self.layout.add_widget(side_by_side_layout)
-        self.layout.add_widget(self.label)
-        self.layout.add_widget(self.countdown_label)
-        self.layout.add_widget(self.progress_bar)
-
-        self.layout.add_widget(MDRaisedButton(
-            text='Back to Menu',
-            md_bg_color='gray',
-            on_release=self.go_back
-        ))
-
-        self.add_widget(self.layout)
-
-    def on_enter(self, *args):
-        self.reset_state()
-        self.capture = cv2.VideoCapture(0)
-        self.event = Clock.schedule_interval(self.update, 1.0 / 30.0)
-        self.countdown_event = Clock.schedule_interval(self.update_countdown, 1)
-
-    def reset_state(self):
-        # Reset flags
-        self.dialog_shown = False
-        self.failed = False
-        self.countdown = 5
-
-        # Reset UI
-        self.progress_bar.value = 100
-        self.countdown_label.text = f"Time left: {self.countdown}s"
-        self.label.text = "Detecting..."
-
-        # Dismiss existing dialog if open
-        if hasattr(self, 'dialog') and self.dialog and self.dialog.open:
-            self.dialog.dismiss()
-            self.dialog = None
-
-    def on_leave(self, *args):
-        if self.capture:
-            self.capture.release()
-            self.capture = None
-        if self.event:
-            Clock.unschedule(self.event)
-            self.event = None
-        if self.countdown_event:
-            Clock.unschedule(self.countdown_event)
-            self.countdown_event = None
-
-    def update(self, dt):
-        if not self.capture:
-            return
-
-        ret, frame = self.capture.read()
-        if not ret:
-            return
-
-        data_aux = []
-        x_, y_ = [], []
-        H, W, _ = frame.shape
-
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = hands.process(frame_rgb)
-
-        prediction_text = "No hand detected"
-
-        if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                mp_drawing.draw_landmarks(
-                    frame,
-                    hand_landmarks,
-                    mp_hands.HAND_CONNECTIONS,
-                    mp_drawing_styles.get_default_hand_landmarks_style(),
-                    mp_drawing_styles.get_default_hand_connections_style()
-                )
-
-                for lm in hand_landmarks.landmark:
-                    x_.append(lm.x)
-                    y_.append(lm.y)
-
-                for lm in hand_landmarks.landmark:
-                    data_aux.append(lm.x - min(x_))
-                    data_aux.append(lm.y - min(y_))
-
-                try:
-                    proba = model.predict_proba([np.asarray(data_aux)])
-                    confidence = np.max(proba)
-                    idx = np.argmax(proba)
-
-                    if idx == 4 and confidence >= 0.7:  # Letter U
-                        prediction_text = "You have successfully done the Letter U!"
                         if not self.dialog_shown:
+                            self.play_sfx('correct_answer')
                             if self.countdown_event:
                                 Clock.unschedule(self.countdown_event)
                                 self.countdown_event = None
                             self.show_success_dialog()
                     else:
                         prediction_text = "Gesture incorrect"
-                except:
+                except Exception as e:
                     prediction_text = "Prediction error"
 
-        self.label.text = prediction_text
+        self.detection_label.text = prediction_text
 
+        # Update camera texture
         frame = cv2.flip(frame, 0)
         buf = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).tobytes()
         img_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='rgb')
         img_texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
-        self.image.texture = img_texture
+        self.camera_image.texture = img_texture
+
+    def stop_all_sounds(self):
+        """Stop all currently playing sound effects"""
+        for sound in self.sfx.values():
+            if sound:
+                sound.stop()
 
     def update_countdown(self, dt):
+        """Update the countdown timer with immediate SFX feedback"""
         if self.countdown <= 0:
-            Clock.unschedule(self.countdown_event)
-            self.countdown_event = None
+            if self.countdown_event:
+                Clock.unschedule(self.countdown_event)
+                self.countdown_event = None
             self.progress_bar.value = 0
             self.countdown_label.text = "Time left: 0s"
             if not self.dialog_shown and not self.failed:
                 self.failed = True
+                self.play_sfx('wrong_answer')
                 self.show_failure_dialog()
             return
 
+        # Play tick sound for each countdown update
+        if self.countdown <= 5:
+            self.play_sfx('countdown_tick')
+
         self.countdown_label.text = f"Time left: {self.countdown}s"
-        self.progress_bar.value = (self.countdown / 5) * 100
+        self.progress_bar.value = (self.countdown / self.countdown_duration) * 100
         self.countdown -= 1
 
-    def go_to_next_screen(self):
-        app = MDApp.get_running_app()
-        app.sm.current = 'vowel_third_intermediate_screen'
-
     def show_success_dialog(self):
+        """Show success dialog with proper countdown stopping"""
         if self.dialog_shown:
             return
 
-        self.dialog_shown = True
-        if not hasattr(self, 'dialog') or not self.dialog:
-            self.dialog = MDDialog(
-                title="🎉 Congratulations! 🎉",
-                text="You did an amazing job!",
-                radius=[20, 7, 20, 7],
-                buttons=[
-                    MDRaisedButton(
-                        text="Thank you!",
-                        on_release=lambda x: (self.dialog.dismiss(), self.go_to_next_screen())
-                    )
-                ],
-            )
+        # Stop countdown immediately
+        if self.countdown_event:
+            Clock.unschedule(self.countdown_event)
+            self.countdown_event = None
 
+        self.dialog_shown = True
+        self.play_sfx('correct_answer')
+
+        def go_to_next_screen(*args):
+            self.dialog.dismiss()
+            app = MDApp.get_running_app()
+            app.sm.current = self.next_screen
+
+        self.dialog = MDDialog(
+            title="Correct!",
+            text="Great job! You got it right.",
+            radius=[20, 7, 20, 7],
+            auto_dismiss=False,
+            buttons=[
+                MDRaisedButton(
+                    text="Continue",
+                    on_release=lambda x: (self.play_sfx('button_click'), go_to_next_screen())
+                )
+            ],
+        )
         self.dialog.open()
 
     def show_failure_dialog(self):
+        """Show failure dialog with proper countdown stopping"""
         self.dialog_shown = True
-        if not hasattr(self, 'dialog') or not self.dialog:
-            self.dialog = MDDialog(
-                title="❌ You Failed",
-                text="Time's up and the correct gesture wasn't detected.",
-                radius=[20, 7, 20, 7],
-                buttons=[
-                    MDRaisedButton(
-                        text="Try Again",
-                        on_release=lambda x: (self.dialog.dismiss(), self.go_back())
-                    )
-                ],
-            )
+
+        # Stop countdown if it wasn't already stopped
+        if self.countdown_event:
+            Clock.unschedule(self.countdown_event)
+            self.countdown_event = None
+
+        self.play_sfx('wrong_answer')
+
+        def try_again(*args):
+            self.dialog.dismiss()
+            self.go_back()
+
+        self.dialog = MDDialog(
+            title="Time's Up!",
+            text="You didn't make the gesture in time.",
+            radius=[20, 7, 20, 7],
+            auto_dismiss=False,
+            buttons=[
+                MDRaisedButton(
+                    text="Try Again",
+                    on_release=lambda x: (self.play_sfx('button_click'), try_again())
+                )
+            ],
+        )
         self.dialog.open()
 
     def go_back(self, *args):
-        app = MDApp.get_running_app()
-        app.openChallenges()
+        """Return to challenges menu with sound and cleanup"""
+        self.play_sfx('button_click')
+        self.stop_all_sounds()
 
-class ThirdScreenVowelIntermediate(MDScreen):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        # Schedule actual navigation after sound plays
+        Clock.schedule_once(lambda dt: self._actual_go_back(), 0.1)
 
-        self.dialog_shown = False
-        self.failed = False
-        self.countdown = 5
-        self.countdown_event = None
-
-        self.capture = None
-        self.event = None
-
-        self.layout = MDBoxLayout(
-            orientation='vertical',
-            spacing=20,
-            padding=[0, 0, 0, 0],
-            size_hint=(None, None),
-            size=(400, 500),
-            pos_hint={'center_x': 0.5, 'center_y': 0.5}
-        )
-
-        self.image = Image(size_hint=(None, None), width=200, height=200)
-        self.gif_image = AsyncImage(
-            source='assets/challenges/inter/apple.jpg',
-            allow_stretch=True,
-            size_hint=(None, None),
-            width=200,
-            height=200,
-            anim_delay=0.05
-        )
-
-        self.label = Label(text="Detecting...", font_size=20)
-        self.countdown_label = Label(text="Time left: 5s", font_size=16)
-        self.progress_bar = MDProgressBar(value=100, max=100)
-
-        side_by_side_layout = BoxLayout(
-            orientation='horizontal',
-            spacing=5,
-            size_hint=(1, None),
-            height=200
-        )
-
-        side_by_side_layout.add_widget(self.image)
-        side_by_side_layout.add_widget(self.gif_image)
-
-        self.layout.add_widget(side_by_side_layout)
-        self.layout.add_widget(self.label)
-        self.layout.add_widget(self.countdown_label)
-        self.layout.add_widget(self.progress_bar)
-
-        self.layout.add_widget(MDRaisedButton(
-            text='Back to Menu',
-            md_bg_color='gray',
-            on_release=self.go_back
-        ))
-
-        self.add_widget(self.layout)
-
-    def on_enter(self, *args):
-        self.reset_state();
-        self.capture = cv2.VideoCapture(0)
-        self.event = Clock.schedule_interval(self.update, 1.0 / 30.0)
-        self.countdown_event = Clock.schedule_interval(self.update_countdown, 1)
-
-    def reset_state(self):
-        # Reset flags
-        self.dialog_shown = False
-        self.failed = False
-        self.countdown = 5
-
-        # Reset UI
-        self.progress_bar.value = 100
-        self.countdown_label.text = f"Time left: {self.countdown}s"
-        self.label.text = "Detecting..."
-
-        # Dismiss existing dialog if open
-        if hasattr(self, 'dialog') and self.dialog and self.dialog.open:
-            self.dialog.dismiss()
-            self.dialog = None
-
-    def on_leave(self, *args):
+    def _actual_go_back(self):
+        """Perform the actual cleanup and navigation"""
+        if self.countdown_event:
+            Clock.unschedule(self.countdown_event)
+            self.countdown_event = None
         if self.capture:
             self.capture.release()
             self.capture = None
         if self.event:
             Clock.unschedule(self.event)
             self.event = None
-        if self.countdown_event:
-            Clock.unschedule(self.countdown_event)
-            self.countdown_event = None
 
-    def update(self, dt):
-        if not self.capture:
-            return
-
-        ret, frame = self.capture.read()
-        if not ret:
-            return
-
-        data_aux = []
-        x_, y_ = [], []
-        H, W, _ = frame.shape
-
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = hands.process(frame_rgb)
-
-        prediction_text = "No hand detected"
-
-        if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                mp_drawing.draw_landmarks(
-                    frame,
-                    hand_landmarks,
-                    mp_hands.HAND_CONNECTIONS,
-                    mp_drawing_styles.get_default_hand_landmarks_style(),
-                    mp_drawing_styles.get_default_hand_connections_style()
-                )
-
-                for lm in hand_landmarks.landmark:
-                    x_.append(lm.x)
-                    y_.append(lm.y)
-
-                for lm in hand_landmarks.landmark:
-                    data_aux.append(lm.x - min(x_))
-                    data_aux.append(lm.y - min(y_))
-
-                try:
-                    proba = model.predict_proba([np.asarray(data_aux)])
-                    confidence = np.max(proba)
-                    idx = np.argmax(proba)
-
-                    if idx == 0 and confidence >= 0.7:  # Letter A
-                        prediction_text = "You have successfully done the Letter A!"
-                        if not self.dialog_shown:
-                            if self.countdown_event:
-                                Clock.unschedule(self.countdown_event)
-                                self.countdown_event = None
-                            self.show_success_dialog()
-                    else:
-                        prediction_text = "Gesture incorrect"
-                except:
-                    prediction_text = "Prediction error"
-
-        self.label.text = prediction_text
-
-        frame = cv2.flip(frame, 0)
-        buf = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).tobytes()
-        img_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='rgb')
-        img_texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
-        self.image.texture = img_texture
-
-    def update_countdown(self, dt):
-        if self.countdown <= 0:
-            Clock.unschedule(self.countdown_event)
-            self.countdown_event = None
-            self.progress_bar.value = 0
-            self.countdown_label.text = "Time left: 0s"
-            if not self.dialog_shown and not self.failed:
-                self.failed = True
-                self.show_failure_dialog()
-            return
-
-        self.countdown_label.text = f"Time left: {self.countdown}s"
-        self.progress_bar.value = (self.countdown / 5) * 100
-        self.countdown -= 1
-
-    def go_to_next_screen(self):
-        app = MDApp.get_running_app()
-        app.sm.current = 'vowel_fourth_intermediate_screen'
-
-    def show_success_dialog(self):
-        if self.dialog_shown:
-            return
-
-        self.dialog_shown = True
-        if not hasattr(self, 'dialog') or not self.dialog:
-            self.dialog = MDDialog(
-                title="🎉 Congratulations! 🎉",
-                text="You did an amazing job!",
-                radius=[20, 7, 20, 7],
-                buttons=[
-                    MDRaisedButton(
-                        text="Thank you!",
-                        on_release=lambda x: (self.dialog.dismiss(), self.go_to_next_screen())
-                    )
-                ],
-            )
-
-        self.dialog.open()
-
-    def show_failure_dialog(self):
-        self.dialog_shown = True
-        if not hasattr(self, 'dialog') or not self.dialog:
-            self.dialog = MDDialog(
-                title="❌ You Failed",
-                text="Time's up and the correct gesture wasn't detected.",
-                radius=[20, 7, 20, 7],
-                buttons=[
-                    MDRaisedButton(
-                        text="Try Again",
-                        on_release=lambda x: (self.dialog.dismiss(), self.go_back())
-                    )
-                ],
-            )
-        self.dialog.open()
-
-    def go_back(self, *args):
         app = MDApp.get_running_app()
         app.openChallenges()
 
-class FourthScreenVowelIntermediate(MDScreen):
+
+# Concrete screen implementations
+class FirstScreenVowelIntermediate(BaseIntermediateScreen):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.dialog_shown = False
-        self.failed = False
-        self.countdown = 5
-        self.countdown_event = None
-
-        self.capture = None
-        self.event = None
-
-        self.layout = MDBoxLayout(
-            orientation='vertical',
-            spacing=20,
-            padding=[0, 0, 0, 0],
-            size_hint=(None, None),
-            size=(400, 500),
-            pos_hint={'center_x': 0.5, 'center_y': 0.5}
+        super().__init__(
+            target_letter_idx=2,  # Letter I
+            image_source='assets/challenges/inter/igloo.jpg',
+            next_screen='vowel_second_intermediate_screen',
+            *args, **kwargs
         )
 
-        self.image = Image(size_hint=(None, None), width=200, height=200)
-        self.gif_image = AsyncImage(
-            source='assets/challenges/inter/ostrich.jpg',
-            allow_stretch=True,
-            size_hint=(None, None),
-            width=200,
-            height=200,
-            anim_delay=0.05
+
+class SecondScreenVowelIntermediate(BaseIntermediateScreen):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            target_letter_idx=4,  # Letter U
+            image_source='assets/challenges/inter/umbrella.jpg',
+            next_screen='vowel_third_intermediate_screen',
+            *args, **kwargs
         )
 
-        self.label = Label(text="Detecting...", font_size=20)
-        self.countdown_label = Label(text=f"Time left: {self.countdown}s", font_size=16)
-        self.progress_bar = MDProgressBar(value=100, max=100)
 
-        side_by_side_layout = BoxLayout(
-            orientation='horizontal',
-            spacing=5,
-            size_hint=(1, None),
-            height=200
+class ThirdScreenVowelIntermediate(BaseIntermediateScreen):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            target_letter_idx=0,  # Letter A
+            image_source='assets/challenges/inter/apple.jpg',
+            next_screen='vowel_fourth_intermediate_screen',
+            *args, **kwargs
         )
-        side_by_side_layout.add_widget(self.image)
-        side_by_side_layout.add_widget(self.gif_image)
 
-        self.layout.add_widget(side_by_side_layout)
-        self.layout.add_widget(self.label)
-        self.layout.add_widget(self.countdown_label)
-        self.layout.add_widget(self.progress_bar)
 
-        self.layout.add_widget(MDRaisedButton(
-            text='Back to Menu',
-            md_bg_color='gray',
-            on_release=self.go_back
-        ))
+class FourthScreenVowelIntermediate(BaseIntermediateScreen):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            target_letter_idx=3,  # Letter O
+            image_source='assets/challenges/inter/ostrich.jpg',
+            next_screen='vowel_fifth_intermediate_screen',
+            *args, **kwargs
+        )
 
-        self.add_widget(self.layout)
 
-    def reset_state(self):
-        self.dialog_shown = False
-        self.failed = False
-        self.countdown = 5
-        self.progress_bar.value = 100
-        self.countdown_label.text = f"Time left: {self.countdown}s"
-        self.label.text = "Detecting..."
-        if hasattr(self, 'dialog') and self.dialog and self.dialog.open:
-            self.dialog.dismiss()
-            self.dialog = None
+class FifthScreenVowelIntermediate(BaseIntermediateScreen):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            target_letter_idx=1,  # Letter E
+            image_source='assets/challenges/inter/elephant.jpg',
+            next_screen='challenges_menu',
+            *args, **kwargs
+        )
 
-    def on_enter(self, *args):
-        self.reset_state()
-        self.capture = cv2.VideoCapture(0)
-        self.event = Clock.schedule_interval(self.update, 1.0 / 30.0)
-        self.countdown_event = Clock.schedule_interval(self.update_countdown, 1)
-
-    def on_leave(self, *args):
-        if self.capture:
-            self.capture.release()
-            self.capture = None
-        if self.event:
-            Clock.unschedule(self.event)
-            self.event = None
-        if self.countdown_event:
-            Clock.unschedule(self.countdown_event)
-            self.countdown_event = None
-
-    def update(self, dt):
-        if not self.capture:
-            return
-
-        ret, frame = self.capture.read()
-        if not ret:
-            return
-
-        data_aux = []
-        x_, y_ = [], []
-        H, W, _ = frame.shape
-
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = hands.process(frame_rgb)
-
-        prediction_text = "No hand detected"
-
-        if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                mp_drawing.draw_landmarks(
-                    frame,
-                    hand_landmarks,
-                    mp_hands.HAND_CONNECTIONS,
-                    mp_drawing_styles.get_default_hand_landmarks_style(),
-                    mp_drawing_styles.get_default_hand_connections_style()
-                )
-
-                for lm in hand_landmarks.landmark:
-                    x_.append(lm.x)
-                    y_.append(lm.y)
-
-                for lm in hand_landmarks.landmark:
-                    data_aux.append(lm.x - min(x_))
-                    data_aux.append(lm.y - min(y_))
-
-                try:
-                    proba = model.predict_proba([np.asarray(data_aux)])
-                    confidence = np.max(proba)
-                    idx = np.argmax(proba)
-
-                    if idx == 3 and confidence >= 0.7:  # idx 3 corresponds to Letter O
-                        prediction_text = "You have successfully done the Letter O!"
-                        if not self.dialog_shown:
-                            if self.countdown_event:
-                                Clock.unschedule(self.countdown_event)
-                                self.countdown_event = None
-                            self.show_success_dialog()
-                    else:
-                        prediction_text = "Gesture incorrect"
-                except:
-                    prediction_text = "Prediction error"
-
-        self.label.text = prediction_text
-
-        frame = cv2.flip(frame, 0)
-        buf = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).tobytes()
-        img_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='rgb')
-        img_texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
-        self.image.texture = img_texture
-
-    def update_countdown(self, dt):
-        if self.countdown <= 0:
-            Clock.unschedule(self.countdown_event)
-            self.countdown_event = None
-            self.progress_bar.value = 0
-            self.countdown_label.text = "Time left: 0s"
-            if not self.dialog_shown and not self.failed:
-                self.failed = True
-                self.show_failure_dialog()
-            return
-
-        self.countdown_label.text = f"Time left: {self.countdown}s"
-        self.progress_bar.value = (self.countdown / 5) * 100
-        self.countdown -= 1
-
-    def go_to_next_screen(self):
-        app = MDApp.get_running_app()
-        app.sm.current = 'vowel_fifth_intermediate_screen'
+        # Add completion sound effects
+        self.sfx['completion'] = SoundLoader.load('assets/sounds/levelwin2.mp3')
+        self.sfx['achievement'] = SoundLoader.load('assets/sounds/achievementunlock2.mp3')
 
     def show_success_dialog(self):
+        """Override to show completion dialog and handle achievements"""
         if self.dialog_shown:
             return
 
         self.dialog_shown = True
-        if not hasattr(self, 'dialog') or not self.dialog:
-            self.dialog = MDDialog(
-                title="🎉 Congratulations! 🎉",
-                text="You did an amazing job!",
-                radius=[20, 7, 20, 7],
-                buttons=[
-                    MDRaisedButton(
-                        text="Thank you!",
-                        on_release=lambda x: (self.dialog.dismiss(), self.go_to_next_screen())
-                    )
-                ],
-            )
 
-        self.dialog.open()
-
-    def show_failure_dialog(self):
-        self.dialog_shown = True
-        if not hasattr(self, 'dialog') or not self.dialog:
-            self.dialog = MDDialog(
-                title="❌ You Failed",
-                text="Time's up and the correct gesture wasn't detected.",
-                radius=[20, 7, 20, 7],
-                buttons=[
-                    MDRaisedButton(
-                        text="Try Again",
-                        on_release=lambda x: (self.dialog.dismiss(), self.go_back())
-                    )
-                ],
-            )
-        self.dialog.open()
-
-    def go_back(self, *args):
-        app = MDApp.get_running_app()
-        app.openChallenges()
-
-class FifthScreenVowelIntermediate(MDScreen):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.dialog_shown = False
-        self.failed = False
-        self.countdown = 5
-        self.countdown_event = None
-
-        self.capture = None
-        self.event = None
-
-        self.layout = MDBoxLayout(
-            orientation='vertical',
-            spacing=20,
-            padding=[0, 0, 0, 0],
-            size_hint=(None, None),
-            size=(400, 500),
-            pos_hint={'center_x': 0.5, 'center_y': 0.5}
-        )
-
-        self.image = Image(size_hint=(None, None), width=200, height=200)
-        self.gif_image = AsyncImage(
-            source='assets/challenges/inter/elephant.jpg',
-            allow_stretch=True,
-            size_hint=(None, None),
-            width=200,
-            height=200,
-            anim_delay=0.05
-        )
-
-        self.label = Label(text="Detecting...", font_size=20)
-        self.countdown_label = Label(text="Time left: 5s", font_size=16)
-        self.progress_bar = MDProgressBar(value=100, max=100)
-
-        side_by_side_layout = BoxLayout(
-            orientation='horizontal',
-            spacing=5,
-            size_hint=(1, None),
-            height=200
-        )
-
-        side_by_side_layout.add_widget(self.image)
-        side_by_side_layout.add_widget(self.gif_image)
-
-        self.layout.add_widget(side_by_side_layout)
-        self.layout.add_widget(self.label)
-        self.layout.add_widget(self.countdown_label)
-        self.layout.add_widget(self.progress_bar)
-
-        self.layout.add_widget(MDRaisedButton(
-            text='Back to Menu',
-            md_bg_color='gray',
-            on_release=self.go_back
-        ))
-
-        self.add_widget(self.layout)
-
-    def on_enter(self, *args):
-        self.reset_state()
-        self.capture = cv2.VideoCapture(0)
-        self.event = Clock.schedule_interval(self.update, 1.0 / 30.0)
-        self.countdown_event = Clock.schedule_interval(self.update_countdown, 1)
-
-    def reset_state(self):
-        self.dialog_shown = False
-        self.failed = False
-        self.countdown = 5
-
-        self.progress_bar.value = 100
-        self.countdown_label.text = f"Time left: {self.countdown}s"
-        self.label.text = "Detecting..."
-
-        if hasattr(self, 'dialog') and self.dialog and self.dialog.open:
+        def show_challenge_complete(*args):
             self.dialog.dismiss()
-            self.dialog = None
 
-    def on_leave(self, *args):
-        if self.capture:
-            self.capture.release()
-            self.capture = None
-        if self.event:
-            Clock.unschedule(self.event)
-            self.event = None
-        if self.countdown_event:
-            Clock.unschedule(self.countdown_event)
-            self.countdown_event = None
+            # Load account data and check if first completion
+            with open("account_data.pkl", "rb") as file:
+                account = pickle.load(file)
+            first_completion = not account.intermediateChallenge
+            account.intermediateChallenge = True
 
-    def update(self, dt):
-        if not self.capture:
-            return
+            # Save updated account data
+            with open("account_data.pkl", "wb") as file:
+                pickle.dump(account, file)
 
-        ret, frame = self.capture.read()
-        if not ret:
-            return
+            # Play completion sound
+            self.play_sfx('completion')
 
-        data_aux = []
-        x_, y_ = [], []
-        H, W, _ = frame.shape
+            # Show challenge complete dialog
+            complete_dialog = MDDialog(
+                title="Challenge Complete!",
+                text="You've mastered all the vowels in the Intermediate Challenge!",
+                radius=[20, 7, 20, 7],
+                auto_dismiss=False,
+                buttons=[
+                    MDRaisedButton(
+                        text="Continue",
+                        on_release=lambda x: (
+                            self.play_sfx('button_click'),
+                            complete_dialog.dismiss(),
+                            self.show_achievement(first_completion) if first_completion else
+                            self.go_to_challenges_menu()
+                        )
+                    )
+                ]
+            )
+            complete_dialog.open()
 
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = hands.process(frame_rgb)
-
-        prediction_text = "No hand detected"
-
-        if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                mp_drawing.draw_landmarks(
-                    frame,
-                    hand_landmarks,
-                    mp_hands.HAND_CONNECTIONS,
-                    mp_drawing_styles.get_default_hand_landmarks_style(),
-                    mp_drawing_styles.get_default_hand_connections_style()
+        self.dialog = MDDialog(
+            title="Correct!",
+            text="Great job! You got the last vowel right!",
+            radius=[20, 7, 20, 7],
+            auto_dismiss=False,
+            buttons=[
+                MDRaisedButton(
+                    text="Continue",
+                    on_release=lambda x: (
+                        self.play_sfx('button_click'),
+                        show_challenge_complete()
+                    )
                 )
-
-                for lm in hand_landmarks.landmark:
-                    x_.append(lm.x)
-                    y_.append(lm.y)
-
-                for lm in hand_landmarks.landmark:
-                    data_aux.append(lm.x - min(x_))
-                    data_aux.append(lm.y - min(y_))
-
-                try:
-                    proba = model.predict_proba([np.asarray(data_aux)])
-                    confidence = np.max(proba)
-                    idx = np.argmax(proba)
-
-                    if idx == 1 and confidence >= 0.7:  # Letter E
-                        prediction_text = "You have successfully done the Letter E!"
-                        if not self.dialog_shown:
-                            if self.countdown_event:
-                                Clock.unschedule(self.countdown_event)
-                                self.countdown_event = None
-                            self.show_success_dialog()
-                    else:
-                        prediction_text = "Gesture incorrect"
-                except:
-                    prediction_text = "Prediction error"
-
-        self.label.text = prediction_text
-
-        frame = cv2.flip(frame, 0)
-        buf = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).tobytes()
-        img_texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='rgb')
-        img_texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
-        self.image.texture = img_texture
-
-    def update_countdown(self, dt):
-        if self.countdown <= 0:
-            Clock.unschedule(self.countdown_event)
-            self.countdown_event = None
-            self.progress_bar.value = 0
-            self.countdown_label.text = "Time left: 0s"
-            if not self.dialog_shown and not self.failed:
-                self.failed = True
-                self.show_failure_dialog()
-            return
-
-        self.countdown_label.text = f"Time left: {self.countdown}s"
-        self.progress_bar.value = (self.countdown / 5) * 100
-        self.countdown -= 1
-
-    def go_to_next_screen(self):
-        app = MDApp.get_running_app()
-        app.sm.current = 'challenges_menu'  # Change this to your next screen name
-
-    def show_success_dialog(self):
-        if self.dialog_shown:
-            return
-
-        self.dialog_shown = True
-        if not hasattr(self, 'dialog') or not self.dialog:
-            self.dialog = MDDialog(
-                title="🎉 Congratulations! 🎉",
-                text="You did an amazing job!",
-                radius=[20, 7, 20, 7],
-                buttons=[
-                    MDRaisedButton(
-                        text="Thank you!",
-                        on_release=lambda x: (self.dialog.dismiss(), self.go_to_next_screen())
-                    )
-                ],
-            )
-
-        with open("account_data.pkl", "rb") as file:
-            account = pickle.load(file)
-
-        account.intermediateChallenge = True
-
-        with open("account_data.pkl", "wb") as file:
-            pickle.dump(account, file)
-
+            ]
+        )
         self.dialog.open()
 
-    def show_failure_dialog(self):
-        self.dialog_shown = True
-        if not hasattr(self, 'dialog') or not self.dialog:
-            self.dialog = MDDialog(
-                title="❌ You Failed",
-                text="Time's up and the correct gesture wasn't detected.",
+    def show_achievement(self, first_completion):
+        """Show achievement unlocked dialog if first completion"""
+        if first_completion:
+            self.play_sfx('achievement')
+            achievement_dialog = MDDialog(
+                title="Achievement Unlocked!",
+                text="First Time Completion: Intermediate Vowels Challenge!",
                 radius=[20, 7, 20, 7],
+                auto_dismiss=False,
                 buttons=[
                     MDRaisedButton(
-                        text="Try Again",
-                        on_release=lambda x: (self.dialog.dismiss(), self.go_back())
+                        text="Awesome!",
+                        on_release=lambda x: (
+                            self.play_sfx('button_click'),
+                            achievement_dialog.dismiss(),
+                            self.go_to_challenges_menu()
+                        )
                     )
-                ],
+                ]
             )
-        self.dialog.open()
+            achievement_dialog.open()
 
-    def go_back(self, *args):
+    def go_to_challenges_menu(self):
+        """Navigate back to challenges menu"""
         app = MDApp.get_running_app()
         app.openChallenges()

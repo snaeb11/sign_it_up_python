@@ -17,11 +17,8 @@ from kivymd.uix.screen import MDScreen
 from kivymd.uix.slider import MDSlider
 
 from register import Account
-
-
 class ImageButton(ButtonBehavior, Image):
     pass
-
 
 class BottomNavScreen(MDScreen):
 
@@ -195,7 +192,7 @@ class BottomNavScreen(MDScreen):
             with open("account_data.pkl", "rb") as file:
                 account = pickle.load(file)
 
-            # ✅ Lesson Progress (5 lessons only: A, E, I, O, U)
+            #Lesson Progress (5 lessons only: A, E, I, O, U)
             lesson_flags = [
                 account.aStatus,
                 account.eStatus,
@@ -206,7 +203,7 @@ class BottomNavScreen(MDScreen):
             lesson_progress = sum(lesson_flags)
             progress_percent = int((lesson_progress / len(lesson_flags)) * 100)
 
-            # ✅ Achievement Progress (now includes introStatus too)
+            # Achievement Progress (now includes introStatus too)
             achievement_flags = [
                 account.introStatus,
                 account.aStatus,
@@ -214,13 +211,27 @@ class BottomNavScreen(MDScreen):
                 account.iStatus,
                 account.oStatus,
                 account.uStatus,
-                account.achievementOne,
-                account.achievementTwo,
-                account.achievementThree,
-                account.achievementFour
+                account.easyChallenge,
+                account.intermediateChallenge,
+                account.hardChallenge,
+                account.finalAchievement
             ]
             achievement_progress = sum(achievement_flags)
             achievement_percent = int((achievement_progress / len(achievement_flags)) * 100)
+
+            # Individual achievement statuses for badges
+            badge_statuses = [
+                account.introStatus,        # 1. Welcome badge
+                account.aStatus,            # 2. A lesson
+                account.eStatus,            # 3. E lesson
+                account.iStatus,            # 4. I lesson
+                account.oStatus,            # 5. O lesson
+                account.uStatus,            # 6. U lesson
+                account.easyChallenge,      # 7. Easy challenge
+                account.intermediateChallenge,  # 8. Intermediate challenge
+                account.hardChallenge,      # 9. Hard challenge
+                account.finalAchievement    # 10. Master badge
+            ]
 
         except Exception as e:
             print(f"Failed to load account data: {e}")

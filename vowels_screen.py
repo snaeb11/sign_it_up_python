@@ -292,6 +292,7 @@ class LetterAScreen(MDScreen):
                 title="Congratulations!",
                 text="You did an amazing job!",
                 radius=[20, 7, 20, 7],
+                auto_dismiss=False,
                 buttons=[
                     MDRaisedButton(
                         text="Thank you!",
@@ -317,6 +318,7 @@ class LetterAScreen(MDScreen):
             title="Achievement Unlocked!",
             text="You've successfully learned the Letter A! Keep going!",
             radius=[20, 7, 20, 7],
+            auto_dismiss=False,
             buttons=[
                 MDRaisedButton(
                     text="Awesome!",
@@ -591,6 +593,7 @@ class LetterEScreen(MDScreen):
                 title="Congratulations!",
                 text="You did an amazing job with Letter E!",
                 radius=[20, 7, 20, 7],
+                auto_dismiss=False,
                 buttons=[
                     MDRaisedButton(
                         text="Thank you!",
@@ -616,6 +619,7 @@ class LetterEScreen(MDScreen):
             title="Achievement Unlocked!",
             text="You've successfully learned the Letter E! Keep going!",
             radius=[20, 7, 20, 7],
+            auto_dismiss=False,
             buttons=[
                 MDRaisedButton(
                     text="Awesome!",
@@ -891,6 +895,7 @@ class LetterIScreen(MDScreen):
                 title="Congratulations!",
                 text="You did an amazing job with Letter I!",
                 radius=[20, 7, 20, 7],
+                auto_dismiss=False,
                 buttons=[
                     MDRaisedButton(
                         text="Thank you!",
@@ -916,6 +921,7 @@ class LetterIScreen(MDScreen):
             title="Achievement Unlocked!",
             text="You've successfully learned the Letter I! Keep going!",
             radius=[20, 7, 20, 7],
+            auto_dismiss=False,
             buttons=[
                 MDRaisedButton(
                     text="Awesome!",
@@ -1191,6 +1197,7 @@ class LetterOScreen(MDScreen):
                 title="Congratulations!",
                 text="You did an amazing job with Letter O!",
                 radius=[20, 7, 20, 7],
+                auto_dismiss=False,
                 buttons=[
                     MDRaisedButton(
                         text="Thank you!",
@@ -1216,6 +1223,7 @@ class LetterOScreen(MDScreen):
             title="Achievement Unlocked!",
             text="You've successfully learned the Letter O! Keep going!",
             radius=[20, 7, 20, 7],
+            auto_dismiss=False,
             buttons=[
                 MDRaisedButton(
                     text="Awesome!",
@@ -1492,6 +1500,7 @@ class LetterUScreen(MDScreen):
                 title="Congratulations!",
                 text="You did an amazing job with Letter U! Vowel challenges unlocked!",
                 radius=[20, 7, 20, 7],
+                auto_dismiss=False,
                 buttons=[
                     MDRaisedButton(
                         text="Thank you!",
@@ -1517,6 +1526,7 @@ class LetterUScreen(MDScreen):
             title="Achievement Unlocked!",
             text="You've completed all vowels! Vowel challenges are now available!",
             radius=[20, 7, 20, 7],
+            auto_dismiss=False,
             buttons=[
                 MDRaisedButton(
                     text="Awesome!",

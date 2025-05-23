@@ -333,6 +333,7 @@ class IntroScreen(MDScreen):
                 title="Welcome to SignItUp!",
                 text="You're all set to begin your learning journey. Let's make learning fun!",
                 radius=[20, 7, 20, 7],
+                auto_dismiss=False,
                 buttons=[
                     MDRaisedButton(
                         text="Let's go!",
@@ -358,6 +359,7 @@ class IntroScreen(MDScreen):
             title="Achievement Unlocked!",
             text="You've completed the introduction! Keep going!",
             radius=[20, 7, 20, 7],
+            auto_dismiss=False,
             buttons=[
                 MDRaisedButton(
                     text="Awesome!",

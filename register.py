@@ -26,21 +26,12 @@ class Account:
         ## vowels screen, if true all vowels are cleared
         self.vowelScreen = False
 
-        # achievement
-        self.achievementOne = False
-        self.achievementTwo = False
-        self.achievementThree = False
-        self.achievementFour = False
-        self.achievementFive = False
-        self.achievementSix = False
-        self.achievementSeven = False
-        self.achievementEight = False
-        self.achievementNine = False
-
         # challenge
         self.easyChallenge = False
         self.intermediateChallenge = False
         self.hardChallenge = False
+
+        self.finalAchievement = False
 
         # User Preference Settings
         self.music_volume = 0.5
@@ -50,8 +41,6 @@ class Account:
 class RegisterScreen(MDScreen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        Window.bind(on_key_down=self.on_key_down)
 
         layout = MDBoxLayout(
             orientation='vertical',
@@ -77,7 +66,16 @@ class RegisterScreen(MDScreen):
 
     def on_enter(self):
         """Check for existing account after screen is loaded into manager."""
+        # Bind keyboard when screen is entered
+        self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
+        self._keyboard.bind(on_key_down=self.on_key_down)
         Clock.schedule_once(self.check_existing_account, 0)
+
+    def on_leave(self):
+        """Unbind keyboard when leaving the screen."""
+        if self._keyboard:
+            self._keyboard.unbind(on_key_down=self.on_key_down)
+            self._keyboard = None
 
     def check_existing_account(self, dt):
         """Load existing account and redirect if valid."""
@@ -115,13 +113,21 @@ class RegisterScreen(MDScreen):
 
         self.parent.current = 'register'
 
-    def on_key_down(self, window, key, scancode, codepoint, modifiers):
+    def _keyboard_closed(self):
+        """Handle keyboard being closed."""
+        if self._keyboard:
+            self._keyboard.unbind(on_key_down=self.on_key_down)
+            self._keyboard = None
+
+    def on_key_down(self, keyboard, keycode, text, modifiers):
+        key, scancode = keycode
         if key == 9:  # Tab
             self.switch_focus()
             return True
         elif key == 13:  # Enter
             self.register(None)
             return True
+        return False
 
     def switch_focus(self):
         self.current_field_index = (self.current_field_index + 1) % len(self.fields)
