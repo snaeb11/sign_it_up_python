@@ -19,10 +19,8 @@ class WelcomeScreen(MDScreen):
 
                     if account.username == "User":
                         self.manager.current = "register"
-                        print(f"Account not updated: {account.username}")
                     else:
                         self.manager.current = "bottom_nav"
-                        print(f"Account loaded: {account.username}")
 
             except Exception as e:
                 print(f"Failed to load account: {e}")

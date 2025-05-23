@@ -52,7 +52,6 @@ class BottomNavScreen(MDScreen):
         try:
             with open('account_data.pkl', 'rb') as file:
                 account: Account = pickle.load(file)
-                print(f"Account loaded: {account.username}")
                 return account
         except Exception as e:
             print(f"Error loading account data: {e}")
@@ -564,10 +563,26 @@ class BottomNavScreen(MDScreen):
                 with open('account_data.pkl', 'wb') as file:
                     pickle.dump(account, file)
 
-                print("Progress reset successfully.")
-
                 # Refresh UI to reflect changes
                 self.refresh_home_tab()
 
+                # Show success dialog
+                self.show_reset_success_dialog()
+
         except Exception as e:
             print(f"Failed to reset progress: {e}")
+
+    def show_reset_success_dialog(self):
+        """Show a dialog confirming the progress was reset."""
+        success_dialog = MDDialog(
+            title="Reset Complete",
+            text="Your progress has been cleared",
+            radius=[20, 7, 20, 7],
+            buttons=[
+                MDRaisedButton(
+                    text="OK",
+                    on_release=lambda x: success_dialog.dismiss()
+                )
+            ],
+        )
+        success_dialog.open()

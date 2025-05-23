@@ -1,3 +1,4 @@
+import os
 import pickle
 
 import cv2
@@ -30,28 +31,31 @@ hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
 class IntroScreen(MDScreen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.app = MDApp.get_running_app()
 
-        # Load button SFX with initial volume
-        self.sfx_volume = 0.5  # Default volume, will be updated from account data
-        self.success_sfx = SoundLoader.load('assets/sounds/levelwin2.mp3')
-        self.click_sfx = SoundLoader.load('assets/sounds/select2.mp3')
-        self.achievement_sfx = SoundLoader.load("assets/sounds/achievementunlock2.mp3")
+        # Load user's volume setting from account data
+        self.load_volume_setting()
 
-        # Set initial volumes
-        if self.success_sfx:
-            self.success_sfx.volume = self.sfx_volume
-        if self.click_sfx:
-            self.click_sfx.volume = self.sfx_volume
-        if self.achievement_sfx:
-            self.achievement_sfx.volume = self.sfx_volume
+        # Consolidate all SFX into a dictionary
+        self.sfx = {
+            'button_click': SoundLoader.load('assets/sounds/select2.mp3'),
+            'success': SoundLoader.load('assets/sounds/levelwin2.mp3'),
+            'achievement': SoundLoader.load("assets/sounds/achievementunlock2.mp3"),
+            'thumbs_up': SoundLoader.load('assets/sounds/thumbsup_instruction.mp3')
+        }
+
+        # Set volumes according to user setting
+        self.update_sound_volumes()
+
+        # Set thumbs_up to full volume
+        if self.sfx.get('thumbs_up'):
+            self.sfx['thumbs_up'].volume = 1.0
 
         self.dialog_shown = False
         self.capture = None
         self.event = None
         self.gesture_timer_event = None
         self.gesture_hold_time = 0
-
-        scroll = MDScrollView(size_hint=(1, 1))
 
         self.layout = MDBoxLayout(
             orientation='vertical',
@@ -60,6 +64,21 @@ class IntroScreen(MDScreen):
             size_hint_y=None,
         )
         self.layout.bind(minimum_height=self.layout.setter('height'))
+
+        # Create the scroll view properly
+        self.scroll_view = MDScrollView(
+            do_scroll_x=False,  # Changed to False since this is a vertical scroll
+            do_scroll_y=True,
+            size_hint=(1, 1),
+            bar_width=0
+        )
+        self.scroll_view.bind(on_scroll_stop=self.check_scroll_position)
+
+        # Add the layout to scroll view
+        self.scroll_view.add_widget(self.layout)
+
+        # Add scroll view to screen
+        self.add_widget(self.scroll_view)
 
         # Title
         self.layout.add_widget(MDLabel(
@@ -186,9 +205,6 @@ class IntroScreen(MDScreen):
         self.layout.add_widget(self.progress_bar)
         self.gesture_target_time = 3
 
-        scroll.add_widget(self.layout)
-        self.add_widget(scroll)
-
     def on_enter(self):
         self.capture = cv2.VideoCapture(0)
         self.event = Clock.schedule_interval(self.update, 1.0 / 30.0)
@@ -201,6 +217,7 @@ class IntroScreen(MDScreen):
             Clock.unschedule(self.event)
             self.event = None
         self.reset_gesture_timer()
+        self.dialog_shown = False
 
     def update(self, dt):
         if not self.capture:
@@ -279,25 +296,24 @@ class IntroScreen(MDScreen):
     def show_success_dialog(self):
         if not self.dialog_shown:
             # Update SFX volume from app settings
-            app = MDApp.get_running_app()
-            self.sfx_volume = app.sfx_volume
+            self.sfx_volume = self.app.sfx_volume
+            self.update_sound_volumes()
 
             # Play success sound with current volume
-            if hasattr(self, 'success_sfx') and self.success_sfx:
-                self.success_sfx.volume = self.sfx_volume
-                self.success_sfx.stop()
-                self.success_sfx.play()
+            if self.sfx.get('success'):
+                self.sfx['success'].stop()
+                self.sfx['success'].play()
 
             self.dialog_shown = True
 
-            # ✅ Load account data
+            #Load account data
             with open("account_data.pkl", "rb") as file:
                 account = pickle.load(file)
 
-            # 🚩 Check if this is the first completion
+            #Check if this is the first completion
             show_achievement = not getattr(account, "introStatus", False)
 
-            # ✅ Mark introStatus as complete
+            #Mark introStatus as complete
             account.introStatus = True
 
             with open("account_data.pkl", "wb") as file:
@@ -306,12 +322,13 @@ class IntroScreen(MDScreen):
             # ⛳ Define the button behavior
             def on_lets_go(instance_btn):
                 self.dialog.dismiss()
+                self.dialog_shown = False  # Reset flag when dialog is dismissed
                 if show_achievement:
                     self.show_achievement_popup()
                 else:
                     self.go_back()
 
-            # 👋 Build the success dialog
+            #Build the success dialog
             self.dialog = MDDialog(
                 title="Welcome to SignItUp!",
                 text="You're all set to begin your learning journey. Let's make learning fun!",
@@ -328,14 +345,13 @@ class IntroScreen(MDScreen):
 
     def show_achievement_popup(self):
         # Update SFX volume from app settings
-        app = MDApp.get_running_app()
-        self.sfx_volume = app.sfx_volume
+        self.sfx_volume = self.app.sfx_volume
+        self.update_sound_volumes()
 
         # Play achievement sound with current volume
-        if hasattr(self, 'achievement_sfx') and self.achievement_sfx:
-            self.achievement_sfx.volume = self.sfx_volume
-            self.achievement_sfx.stop()
-            self.achievement_sfx.play()
+        if self.sfx.get('achievement'):
+            self.sfx['achievement'].stop()
+            self.sfx['achievement'].play()
 
         # 🎖️ Build and show achievement dialog
         achievement_dialog = MDDialog(
@@ -361,3 +377,38 @@ class IntroScreen(MDScreen):
             Clock.unschedule(self.gesture_timer_event)
             self.gesture_timer_event = None
         self.progress_bar.value = 0
+
+    def play_thumbs_up_instruction(self):
+        """Play the thumbs up instruction at full volume"""
+        if self.sfx.get('thumbs_up'):
+            self.sfx['thumbs_up'].volume = 1.0  # Always play at full volume
+            self.sfx['thumbs_up'].play()
+
+    def check_scroll_position(self, instance, *args):
+        """Check if user has scrolled to the end"""
+        # For vertical scrolling, check y position
+        scroll_position = instance.scroll_y
+        viewport_height = instance.viewport_size[1]
+        scroll_height = instance.height
+
+        # If scrolled to the bottom (or very close)
+        if scroll_position <= 0.01:  # Near the bottom
+            self.play_thumbs_up_instruction()
+
+    def load_volume_setting(self):
+        """Load the user's saved volume setting"""
+        try:
+            if os.path.exists("account_data.pkl"):
+                with open("account_data.pkl", "rb") as file:
+                    account = pickle.load(file)
+                    self.sfx_volume = getattr(account, 'sfx_volume', 0.5)
+            else:
+                self.sfx_volume = 0.5  # Default if no account exists yet
+        except Exception as e:
+            print(f"Error loading volume setting: {e}")
+
+    def update_sound_volumes(self):
+        """Update all sound volumes to current setting (except thumbs_up instruction)"""
+        for key, sound in self.sfx.items():
+            if sound and key != 'thumbs_up':  # Skip the thumbs_up sound
+                sound.volume = self.sfx_volume

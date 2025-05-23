@@ -1,13 +1,18 @@
+import os
 import subprocess
 import sys
 
-from pathlib import Path
+from kivy.uix.screenmanager import ScreenManager
 from challenges_screen import ChallengesScreen
+from helpers import *
+from intro_screen import IntroScreen
+from navigation_screen import BottomNavScreen
+from register import RegisterScreen
 from vowels_easy_screen import *
-from kivy.core.audio import SoundLoader
-
 from vowels_hard_screen import *
 from vowels_intermediate_screen import *
+from vowels_menu_screen import VowelMenuScreen
+from vowels_screen import *
 
 # List of required packages
 required_packages = ['kivy', 'kivymd', 'mediapipe', 'opencv-python', 'numpy', 'scikit-learn', 'cycler', 'matplotlib']
@@ -20,23 +25,14 @@ for package in required_packages:
         print(f"Installing {package}...")
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
-print("✅ All required packages are installed.")
-
-from kivy.lang import Builder
-from helpers import *
-from kivy.uix.screenmanager import ScreenManager, Screen
-from vowels_screen import *
-from intro_screen import IntroScreen
-from vowels_menu_screen import VowelMenuScreen
-from navigation_screen import BottomNavScreen
-from register import RegisterScreen
-
+print("All required packages are installed.")
 
 #main--------------------------------------------------------------------
 class SignItUp(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._button_sound_callback = self._make_click_callback()
+
         # Initialize with defaults (will be overwritten by load)
         self.music_volume = 0.5
         self.sfx_volume = 0.5
@@ -55,9 +51,6 @@ class SignItUp(MDApp):
 
                 self.music_volume = getattr(account, 'music_volume', 0.5)
                 self.sfx_volume = getattr(account, 'sfx_volume', 0.5)
-
-                # Debug print
-                print(f"Loaded volumes - Music: {self.music_volume}, SFX: {self.sfx_volume}")
 
         except Exception as e:
             print(f"Error loading volume settings: {e}")
@@ -198,55 +191,43 @@ class SignItUp(MDApp):
         self.stop_idle_music()
 
     def openVowelsMenu (self):
-     print('vowels menu')
      self.stop_idle_music()
      self.sm.current = 'vowels_menu'
 
     def openMain(self):
-        print('open menu')
         self.sm.current = 'bottom_nav'
         if self.idle_music:
             self.idle_music.play()
 
     def openChallenges (self):
-        print('challenge time')
         self.sm.current = 'challenges_menu'
 
     def openIntro (self):
-     print('intro')
      self.stop_idle_music()
      self.sm.current = 'intro'
 
     def openLetterA (self):
-     print('letter a')
      self.sm.current = 'a_screen'
 
     def openLetterE (self):
-     print('letter e')
      self.sm.current = 'e_screen'
 
     def openLetterI (self):
-     print('letter i')
      self.sm.current = 'i_screen'
 
     def openLetterO (self):
-     print('letter o')
      self.sm.current = 'o_screen'
 
     def openLetterU (self):
-     print('letter u')
      self.sm.current = 'u_screen'
 
     def openVowelEasy (self):
-     print('vowel Easy')
      self.sm.current = 'vowels_easy'
 
     def openVowelIntermediate (self):
-     print('vowel intermediate')
      self.sm.current = 'vowels_intermediate'
 
     def openVowelHard (self):
-     print('vowel hard')
      self.sm.current = 'vowels_hard'
 
     def validate_vowel_input(self, instance):

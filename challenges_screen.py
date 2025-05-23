@@ -98,14 +98,12 @@ class ChallengesScreen(MDScreen):
         self.layout.clear_widgets()
 
         if not os.path.exists("account_data.pkl"):
-            print("No account_data.pkl found. Creating new account.")
             self.create_default_account()
         else:
             with open("account_data.pkl", "rb") as file:
                 account = pickle.load(file)
 
             # easy button
-            print('easy chal', account.easyChallenge)
             if account.easyChallenge:
                 easyBtn = ImageButton(
                     source=f'assets/vowelsEasyCheck.png',
@@ -180,11 +178,9 @@ class ChallengesScreen(MDScreen):
             ))
 
     def create_default_account(self):
-        print('yawa')
+        print('Creating account...')
 
     def on_enter(self):
-        # Ensure this method is called when returning to the screen
-        print(status_tracker.aStatus, "<-- vowels_menu_screen")
         self.add_vowel_buttons()  # Update the button based on the status
 
     def go_back(self, *args):

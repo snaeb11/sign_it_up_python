@@ -1,6 +1,7 @@
 import os
 import pickle
 
+from kivy.core.audio import SoundLoader
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.screen import MDScreen
@@ -17,28 +18,15 @@ class ImageButton(ButtonBehavior, Image):
     pass
 
 class VowelMenuScreen(MDScreen):
-    def open_letter_a(self, *args):
-        app = MDApp.get_running_app()
-        app.openLetterA()
-
-    def open_letter_e(self, *args):
-        app = MDApp.get_running_app()
-        app.openLetterE()
-
-    def open_letter_i(self, *args):
-        app = MDApp.get_running_app()
-        app.openLetterI()
-
-    def open_letter_o(self, *args):
-        app = MDApp.get_running_app()
-        app.openLetterO()
-
-    def open_letter_u(self, *args):
-        app = MDApp.get_running_app()
-        app.openLetterU()
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.app = MDApp.get_running_app()
+
+        # Initialize sounds
+        self.sfx = {
+            'button_click': SoundLoader.load('assets/sounds/select2.mp3'),
+            'vowel_select': SoundLoader.load('assets/sounds/select2.mp3')
+        }
 
         # Main container to center content vertically
         main_box = MDBoxLayout(
@@ -75,7 +63,6 @@ class VowelMenuScreen(MDScreen):
             height=dp(150)
         )
         self.layout.bind(minimum_width=self.layout.setter('width'))
-
         self.add_vowel_buttons()
 
         scroll_view.add_widget(self.layout)
@@ -100,6 +87,44 @@ class VowelMenuScreen(MDScreen):
         update_spacers()
 
         self.add_widget(main_box)
+
+    def on_enter(self):
+        """Update volumes when screen becomes active"""
+        for sound in self.sfx.values():
+            if sound:
+                sound.volume = self.app.sfx_volume
+        self.add_vowel_buttons()
+
+    def play_sfx(self, sound_name):
+        """Helper method to play SFX with current volume"""
+        if sound_name in self.sfx and self.sfx[sound_name]:
+            self.sfx[sound_name].volume = self.app.sfx_volume
+            self.sfx[sound_name].play()
+
+    def open_letter_a(self, *args):
+        self.play_sfx('vowel_select')
+        app = MDApp.get_running_app()
+        app.openLetterA()
+
+    def open_letter_e(self, *args):
+        self.play_sfx('vowel_select')
+        app = MDApp.get_running_app()
+        app.openLetterE()
+
+    def open_letter_i(self, *args):
+        self.play_sfx('vowel_select')
+        app = MDApp.get_running_app()
+        app.openLetterI()
+
+    def open_letter_o(self, *args):
+        self.play_sfx('vowel_select')
+        app = MDApp.get_running_app()
+        app.openLetterO()
+
+    def open_letter_u(self, *args):
+        self.play_sfx('vowel_select')
+        app = MDApp.get_running_app()
+        app.openLetterU()
 
     def add_vowel_buttons(self):
         # Clear existing widgets first
@@ -210,11 +235,12 @@ class VowelMenuScreen(MDScreen):
                     size=(dp(150), dp(150)),
                 )
 
-            aBtn.bind(on_press=self.open_letter_a)
-            eBtn.bind(on_press=self.open_letter_e)
-            iBtn.bind(on_press=self.open_letter_i)
-            oBtn.bind(on_press=self.open_letter_o)
-            uBtn.bind(on_press=self.open_letter_u)
+            # Bind buttons with sound effects
+            aBtn.bind(on_press=lambda x: (self.play_sfx('button_click'), self.open_letter_a()))
+            eBtn.bind(on_press=lambda x: (self.play_sfx('button_click'), self.open_letter_e()))
+            iBtn.bind(on_press=lambda x: (self.play_sfx('button_click'), self.open_letter_i()))
+            oBtn.bind(on_press=lambda x: (self.play_sfx('button_click'), self.open_letter_o()))
+            uBtn.bind(on_press=lambda x: (self.play_sfx('button_click'), self.open_letter_u()))
 
             self.layout.add_widget(aBtn)
             self.layout.add_widget(eBtn)
@@ -222,23 +248,19 @@ class VowelMenuScreen(MDScreen):
             self.layout.add_widget(oBtn)
             self.layout.add_widget(uBtn)
 
-            self.add_widget(MDRaisedButton(
+            back_button = MDRaisedButton(
                 text='Back to Menu',
                 md_bg_color='gray',
-                on_release=self.go_back,
+                on_release=lambda x: (self.play_sfx('button_click'), self.go_back()),
                 size_hint=(0.5, None),
-                pos_hint={'center_x': 0.5,
-                          'center_y': 0.3}
-            ))
+                pos_hint={'center_x': 0.5, 'center_y': 0.3}
+            )
+            self.add_widget(back_button)
 
     def create_default_account(self):
-        print('yawa')
-
-    def on_enter(self):
-        # Ensure this method is called when returning to the screen
-        print(status_tracker.aStatus, "<-- vowels_menu_screen")
-        self.add_vowel_buttons()  # Update the button based on the status
+        print('Creating default account')
 
     def go_back(self, *args):
+        self.play_sfx('button_click')
         app = MDApp.get_running_app()
         app.openMain()

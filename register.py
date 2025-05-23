@@ -89,11 +89,9 @@ class RegisterScreen(MDScreen):
                 if isinstance(account, Account):  # Ensure it's an Account object
                     # Case-insensitive check for 'user' username
                     if account.username.lower() == 'user':
-                        print("Redirecting to register screen, username is 'user'.")
                         self.parent.current = 'register'
-                        self.create_default_account()  # This should prompt user to register with a different name
+                        self.create_default_account()
                     else:
-                        print(f"Redirecting to bottom_nav (user: {account.username})")
                         # Redirect to bottom_nav screen
                         if self.manager and "bottom_nav" in self.manager.screen_names:
                             self.manager.current = "bottom_nav"
@@ -153,9 +151,7 @@ class RegisterScreen(MDScreen):
 
         # Proceed if the username is not 'user'
         if username_input != "":
-            print("Account registered with username:", username_input)
             self.save_account()
-            print('Account saved to pickle file.')
             if self.manager and "bottom_nav" in self.manager.screen_names:
                 self.manager.current = "bottom_nav"
             else:
