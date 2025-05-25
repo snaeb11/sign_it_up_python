@@ -252,7 +252,18 @@ class BaseIntermediateScreen(MDScreen):
 
     def on_leave(self, *args):
         """Ensure all resources are cleaned up when leaving screen"""
-        self.go_back()  # This will handle all cleanup
+        # Remove self.go_back()
+        self.stop_all_sounds()
+
+        if self.countdown_event:
+            Clock.unschedule(self.countdown_event)
+            self.countdown_event = None
+        if self.capture:
+            self.capture.release()
+            self.capture = None
+        if self.event:
+            Clock.unschedule(self.event)
+            self.event = None
 
     def reset_state(self):
         """Reset all state variables"""
